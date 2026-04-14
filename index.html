@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>강철삼림: 언더커버 추출 작전</title>
     <style>
         :root {
@@ -22,116 +23,49 @@
             align-items: center;
             height: 100vh;
             overflow: hidden;
+            position: relative;
         }
 
-        /* CCTV 스캔라인 효과 */
+        /* CCTV 스캔라인 */
         body::before {
             content: " ";
-            position: fixed;
+            position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
             background-size: 100% 4px, 3px 100%;
             pointer-events: none;
             z-index: 10;
         }
 
         #game-container {
-            width: 90%;
-            max-width: 500px;
+            width: 360px; /* 고정폭으로 설정하여 레이아웃 붕괴 방지 */
             background: var(--panel-bg);
             border: 1px solid #2a3b4d;
             padding: 20px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #2a3b4d;
-            padding-bottom: 10px;
-        }
-
-        .status-panel { text-align: center; }
-        .timer { font-size: 2rem; color: var(--accent-blue); }
-
-        #grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 4px;
-            margin-bottom: 20px;
-        }
-
-        .tile {
-            aspect-ratio: 1;
-            background: #16222c;
-            border: 1px solid #253341;
-            display: flex;
-            justify-content: center;
-            align-items: center;<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>강철삼림: 언더커버 추출 작전</title>
-    <style>
-        :root {
-            --bg-dark: #050a0f;
-            --panel-bg: #0d151d;
-            --accent-blue: #00e5ff;
-            --danger-red: #ff3e3e;
-            --signal-green: #00ff88;
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: #e0e0e0;
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        body::before {
-            content: " ";
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 4px, 3px 100%;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        #game-container {
-            width: 90%;
-            max-width: 500px;
-            background: var(--panel-bg);
-            border: 1px solid #2a3b4d;
-            padding: 20px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            box-shadow: 0 0 30px rgba(0,0,0,0.7);
+            position: relative;
             z-index: 5;
         }
 
         header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
+            align-items: flex-start;
+            margin-bottom: 15px;
             border-bottom: 1px solid #2a3b4d;
             padding-bottom: 10px;
+            font-size: 0.8rem;
         }
 
-        .status-panel { text-align: center; }
-        .timer { font-size: 1.5rem; color: var(--accent-blue); }
+        .status-panel { text-align: center; flex-grow: 1; }
+        .timer-text { font-size: 1.2rem; color: var(--accent-blue); font-weight: bold; margin-top: 5px; }
 
         #grid {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
-            gap: 4px;
-            margin-bottom: 20px;
+            gap: 5px;
+            margin-bottom: 15px;
         }
 
         .tile {
@@ -143,25 +77,27 @@
             align-items: center;
             cursor: pointer;
             font-weight: bold;
-            font-size: 1rem;
-            transition: color 0.8s ease-out; /* 색상이 서서히 변하는 효과 */
+            font-size: 1.1rem;
+            transition: color 0.6s ease-out;
         }
 
-        .tile.open { background: #050a0f; cursor: default; }
+        .tile:hover { background: #1f2f3d; }
+        .tile.open { background: #050a0f; cursor: default; border-color: #0d151d; }
         
-        /* 힌트 색상 클래스 */
-        .hint-red { color: var(--danger-red); text-shadow: 0 0 5px var(--danger-red); }
+        /* 힌트 컬러 */
+        .hint-red { color: var(--danger-red); text-shadow: 0 0 8px var(--danger-red); }
         .hint-orange { color: #ffab40; }
         .hint-blue { color: var(--accent-blue); }
-        .hint-none { color: #444 !important; text-shadow: none !important; }
+        .hint-none { color: #333 !important; text-shadow: none !important; }
 
         .system-log {
             background: #000;
             padding: 10px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--signal-green);
-            height: 40px;
+            height: 45px;
             border: 1px solid #1a1a1a;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -169,371 +105,149 @@
 
 <div id="game-container">
     <header>
-        <div class="profile">AGENT<br><span style="color:var(--accent-blue)">ZHOU JIN</span></div>
+        <div>AGENT<br><span style="color:var(--accent-blue)">ZHOU JIN</span></div>
         <div class="status-panel">
-            <div id="status-text">DECODING...</div>
-            <div class="timer" id="timer">MISSION START</div>
+            <div style="font-size: 0.7rem; color: #666;">OPERATION: UNDERCOVER</div>
+            <div class="timer-text" id="status-display">DECODING...</div>
         </div>
-        <div class="profile">TARGET<br><span style="color:var(--danger-red)">JANG CHENG</span></div>
+        <div style="text-align:right">TARGET<br><span style="color:var(--danger-red)">JANG CHENG</span></div>
     </header>
 
     <div id="grid"></div>
 
-    <div class="system-log" id="log">
-        [SYSTEM] 타일을 클릭하여 장청의 신호를 역추적하십시오.
+    <div class="system-log" id="log-display">
+        [SYSTEM] 장청의 신호 반경을 추적 중입니다. 타일을 열어 위치를 특정하십시오.
     </div>
 </div>
 
 <script>
-    const rows = 10, cols = 8, totalMines = 12;
-    const HINT_DURATION = 4000; // 4초 후 색상 증발
+    const ROWS = 10;
+    const COLS = 8;
+    const MINES_COUNT = 12;
+    const HINT_TIME = 4000; 
 
-    let gridData = [], opened = [], flagged = [];
-    let jangCheng = { r: 0, c: 0 };
+    let grid = [];
+    let opened = [];
+    let flagged = [];
+    let targetPos = { r: 0, c: 0 };
 
     const gridEl = document.getElementById('grid');
-    const logEl = document.getElementById('log');
+    const logEl = document.getElementById('log-display');
 
-    function initGame() {
-        gridData = Array.from({ length: rows }, () => Array(cols).fill(0));
-        opened = Array.from({ length: rows }, () => Array(cols).fill(false));
-        flagged = Array.from({ length: rows }, () => Array(cols).fill(false));
-        
-        let placedTarget = false;
-        let placedMines = 0;
+    function startGame() {
+        grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+        opened = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+        flagged = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
 
-        // 1. 장청 및 조직원 배치
-        while (!placedTarget || placedMines < totalMines - 1) {
-            let r = Math.floor(Math.random() * rows);
-            let c = Math.floor(Math.random() * cols);
-            if (gridData[r][c] === 0) {
-                if (!placedTarget) {
-                    jangCheng = { r, c };
-                    gridData[r][c] = 'T';
-                    placedTarget = true;
+        // 장청 & 조직원 배치
+        let targetSet = false;
+        let minesSet = 0;
+        while (!targetSet || minesSet < MINES_COUNT - 1) {
+            let r = Math.floor(Math.random() * ROWS);
+            let c = Math.floor(Math.random() * COLS);
+            if (grid[r][c] === 0) {
+                if (!targetSet) {
+                    targetPos = { r, c };
+                    grid[r][c] = 'T';
+                    targetSet = true;
                 } else {
-                    gridData[r][c] = 'M';
-                    placedMines++;
+                    grid[r][c] = 'M';
+                    minesSet++;
                 }
             }
         }
 
-        // 2. 인접 지뢰 수 계산
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                if (gridData[r][c] === 'M' || gridData[r][c] === 'T') continue;
+        // 인접 지뢰 계산
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                if (grid[r][c] === 'M' || grid[r][c] === 'T') continue;
                 let count = 0;
                 for (let i = -1; i <= 1; i++) {
                     for (let j = -1; j <= 1; j++) {
                         let nr = r + i, nc = c + j;
-                        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
-                            if (gridData[nr][nc] === 'M' || gridData[nr][nc] === 'T') count++;
+                        if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+                            if (grid[nr][nc] === 'M' || grid[nr][nc] === 'T') count++;
                         }
                     }
                 }
-                gridData[r][c] = count;
+                grid[r][c] = count;
             }
         }
-        renderGrid();
+        drawGrid();
     }
 
-    function renderGrid() {
+    function drawGrid() {
         gridEl.innerHTML = '';
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                const tile = document.createElement('div');
-                tile.className = 'tile';
-                tile.id = `tile-${r}-${c}`;
-                tile.onclick = () => handleTap(r, c);
-                tile.oncontextmenu = (e) => handleRightClick(e, r, c);
-                gridEl.appendChild(tile);
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                const div = document.createElement('div');
+                div.className = 'tile';
+                div.id = `t-${r}-${c}`;
+                div.onclick = () => handleClick(r, c);
+                div.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    handleRightClick(r, c);
+                };
+                gridEl.appendChild(div);
             }
         }
     }
 
-    function handleTap(r, c) {
-        if (flagged[r][c] || opened[r][c]) return;
+    function handleClick(r, c) {
+        if (opened[r][c] || flagged[r][c]) return;
 
-        if (gridData[r][c] === 'T') {
-            logEl.innerText = "[SUCCESS] 장청과 접선했습니다. 즉시 현장을 탈출합니다.";
-            setTimeout(() => { alert("접선 성공!"); location.reload(); }, 100);
-        } else if (gridData[r][c] === 'M') {
-            logEl.innerText = "[FAILED] 정체가 발각되었습니다. 작전 실패.";
-            setTimeout(() => { alert("작전 실패!"); location.reload(); }, 100);
+        if (grid[r][c] === 'T') {
+            logEl.innerText = "[SUCCESS] 장청 구출 성공. 통신망을 폐쇄합니다.";
+            setTimeout(() => { alert("Mission Clear"); location.reload(); }, 200);
+        } else if (grid[r][c] === 'M') {
+            logEl.innerText = "[WARNING] 조직원에게 발각됨. 작전 즉시 중단.";
+            setTimeout(() => { alert("Mission Failed"); location.reload(); }, 200);
         } else {
-            reveal(r, c);
+            processReveal(r, c);
         }
     }
 
-    function reveal(r, c) {
-        if (r < 0 || r >= rows || c < 0 || c >= cols || opened[r][c] || flagged[r][c]) return;
+    function processReveal(r, c) {
+        if (r < 0 || r >= ROWS || c < 0 || c >= COLS || opened[r][c] || flagged[r][c]) return;
 
         opened[r][c] = true;
-        const tile = document.getElementById(`tile-${r}-${c}`);
-        tile.classList.add('open');
+        const el = document.getElementById(`t-${r}-${c}`);
+        el.classList.add('open');
 
-        if (gridData[r][c] >= 0) {
-            if (gridData[r][c] > 0) tile.innerText = gridData[r][c];
-            
-            // 거리 기반 힌트 색상 적용
-            const dist = Math.sqrt(Math.pow(r - jangCheng.r, 2) + Math.pow(c - jangCheng.c, 2));
-            let hintClass = 'hint-blue';
-            if (dist <= 2.5) hintClass = 'hint-red';
-            else if (dist <= 4.5) hintClass = 'hint-orange';
-            
-            tile.classList.add(hintClass);
+        if (grid[r][c] > 0) el.innerText = grid[r][c];
 
-            // 타이머: 일정 시간 후 색상 증발
-            setTimeout(() => {
-                tile.classList.remove('hint-red', 'hint-orange', 'hint-blue');
-                tile.classList.add('hint-none');
-            }, HINT_DURATION);
-        }
+        // 힌트 컬러 적용
+        const dist = Math.sqrt(Math.pow(r - targetPos.r, 2) + Math.pow(c - targetPos.c, 2));
+        let colorClass = 'hint-blue';
+        if (dist <= 2.2) colorClass = 'hint-red';
+        else if (dist <= 4.2) colorClass = 'hint-orange';
+        
+        el.classList.add(colorClass);
 
-        // 빈칸일 경우 주변 확산
-        if (gridData[r][c] === 0) {
+        // 타이머 설정
+        setTimeout(() => {
+            el.classList.remove('hint-red', 'hint-orange', 'hint-blue');
+            el.classList.add('hint-none');
+        }, HINT_TIME);
+
+        // 주변 0일 때 자동 확장
+        if (grid[r][c] === 0) {
             for (let i = -1; i <= 1; i++) {
                 for (let j = -1; j <= 1; j++) {
-                    reveal(r + i, c + j);
+                    processReveal(r + i, c + j);
                 }
             }
         }
     }
 
-    function handleRightClick(e, r, c) {
-        e.preventDefault();
+    function handleRightClick(r, c) {
         if (opened[r][c]) return;
         flagged[r][c] = !flagged[r][c];
-        const tile = document.getElementById(`tile-${r}-${c}`);
-        tile.innerText = flagged[r][c] ? "🚩" : "";
-        tile.style.color = flagged[r][c] ? "var(--accent-blue)" : "";
+        const el = document.getElementById(`t-${r}-${c}`);
+        el.innerText = flagged[r][c] ? "🚩" : "";
     }
 
-    initGame();
-</script>
-</body>
-</html>
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-
-        .tile:hover { background: #1f2f3d; }
-        .tile.open { background: #050a0f; cursor: default; }
-        
-        /* 신호 상태에 따른 히트맵 클래스 */
-        .hint-red { color: var(--danger-red); text-shadow: 0 0 5px var(--danger-red); }
-        .hint-orange { color: #ffab40; }
-        .hint-blue { color: var(--accent-blue); }
-        .hint-none { color: #444; }
-
-        .system-log {
-            background: #000;
-            padding: 10px;
-            font-size: 0.8rem;
-            color: var(--signal-green);
-            height: 40px;
-            overflow: hidden;
-        }
-    </style>
-</head>
-<body>
-
-<div id="game-container">
-    <header>
-        <div class="profile">AGENT<br><span style="color:var(--accent-blue)">ZHOU JIN</span></div>
-        <div class="status-panel">
-            <div id="status-text">TRACKING SIGNAL...</div>
-            <div class="timer" id="timer">20s</div>
-        </div>
-        <div class="profile">TARGET<br><span style="color:var(--danger-red)">JANG CHENG</span></div>
-    </header>
-
-    <div id="grid"></div>
-
-    <div class="system-log" id="log">
-        [SYSTEM] 초기화 완료. 장청의 신호를 추적합니다...
-    </div>
-</div>
-
-<script>
-   const rows = 10, cols = 8, totalMines = 12;
-const HINT_DURATION = 5000; // 힌트 유지 시간 (5초 - 필요에 따라 조절)
-
-let gridData = [], opened = [], flagged = [];
-let jangCheng = { r: 0, c: 0 };
-let tileTimers = {}; // 각 타일의 타이머를 관리할 객체
-
-const gridEl = document.getElementById('grid');
-const logEl = document.getElementById('log');
-
-function initGame() {
-    gridData = Array.from({ length: rows }, () => Array(cols).fill(0));
-    opened = Array.from({ length: rows }, () => Array(cols).fill(false));
-    flagged = Array.from({ length: rows }, () => Array(cols).fill(false));
-    
-    // 장청 및 조직원 배치
-    let placedTarget = false;
-    let placedMines = 0;
-    while (!placedTarget || placedMines < totalMines - 1) {
-        let r = Math.floor(Math.random() * rows);
-        let c = Math.floor(Math.random() * cols);
-        if (gridData[r][c] === 0) {
-            if (!placedTarget) {
-                jangCheng = { r, c };
-                gridData[r][c] = 'T';
-                placedTarget = true;
-            } else {
-                gridData[r][c] = 'M';
-                placedMines++;
-            }
-        }
-    }
-
-    // 인접 지뢰 수 계산
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-            if (gridData[r][c] === 'M' || gridData[r][c] === 'T') continue;
-            let count = 0;
-            for (let i = -1; i <= 1; i++) {
-                for (let j = -1; j <= 1; j++) {
-                    let nr = r + i, nc = c + j;
-                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
-                        if (gridData[nr][nc] === 'M' || gridData[nr][nc] === 'T') count++;
-                    }
-                }
-            }
-            gridData[r][c] = count;
-        }
-    }
-    renderGrid();
-}
-
-function renderGrid() {
-    gridEl.innerHTML = '';
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-            const tile = document.createElement('div');
-            tile.className = 'tile';
-            tile.id = `tile-${r}-${c}`;
-            tile.onclick = () => handleTap(r, c);
-            tile.oncontextmenu = (e) => handleRightClick(e, r, c);
-            gridEl.appendChild(tile);
-        }
-    }
-}
-
-function handleTap(r, c) {
-    if (flagged[r][c] || opened[r][c]) return;
-
-    if (gridData[r][c] === 'T') {
-        alert("접선 성공! 장청을 구출했습니다.");
-        location.reload();
-    } else if (gridData[r][c] === 'M') {
-        alert("작전 실패! 정체가 탄로났습니다.");
-        location.reload();
-    } else {
-        reveal(r, c);
-    }
-}
-
-function reveal(r, c) {
-    if (r < 0 || r >= rows || c < 0 || c >= cols || opened[r][c] || flagged[r][c]) return;
-
-    opened[r][c] = true;
-    const tile = document.getElementById(`tile-${r}-${c}`);
-    tile.classList.add('open');
-
-    // 숫자 표시 및 색상 힌트 적용
-    if (gridData[r][c] >= 0) {
-        if (gridData[r][c] > 0) tile.innerText = gridData[r][c];
-        
-        // 1. 장청과의 거리에 따른 색상 적용
-        const dist = Math.sqrt(Math.pow(r - jangCheng.r, 2) + Math.pow(c - jangCheng.c, 2));
-        let hintClass = 'hint-blue';
-        if (dist <= 2.5) hintClass = 'hint-red';
-        else if (dist <= 4.5) hintClass = 'hint-orange';
-        
-        tile.classList.add(hintClass);
-
-        // 2. 일정 시간 후 색상 증발 타이머 가동
-        setTimeout(() => {
-            tile.classList.remove('hint-red', 'hint-orange', 'hint-blue');
-            tile.classList.add('hint-none'); // 무채색으로 변경
-        }, HINT_DURATION);
-    }
-
-    // 빈칸일 경우 확산
-    if (gridData[r][c] === 0) {
-        for (let i = -1; i <= 1; i++) {
-            for (let j = -1; j <= 1; j++) {
-                reveal(r + i, c + j);
-            }
-        }
-    }
-}
-
-// 깃발 로직 생략(위와 동일) ...
-
-// 5. 우클릭 깃발(추적 표시) 로직
-function handleRightClick(e, r, c) {
-    e.preventDefault();
-    if (opened[r][c]) return;
-
-    flagged[r][c] = !flagged[r][c];
-    const tile = gridEl.children[r * cols + c];
-    tile.innerText = flagged[r][c] ? "🚩" : "";
-    tile.style.color = flagged[r][c] ? "var(--accent-blue)" : "";
-}
-
-function renderGrid() {
-    gridEl.innerHTML = '';
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-            const tile = document.createElement('div');
-            tile.className = 'tile';
-            
-            // 초기 힌트 페이즈 연출
-            if (isPhaseActive) {
-                const dist = Math.sqrt(Math.pow(r - jangCheng.r, 2) + Math.pow(c - jangCheng.c, 2));
-                if (dist <= 2.5) tile.classList.add('hint-red');
-                else if (dist <= 4.5) tile.classList.add('hint-orange');
-                else tile.classList.add('hint-blue');
-                // 힌트 페이즈일 때는 모든 정보를 살짝 노출 (기획안 유지)
-                tile.innerText = (gridData[r][c] === 'T' || gridData[r][c] === 'M') ? "!" : gridData[r][c];
-            }
-
-            tile.onclick = () => handleTap(r, c);
-            tile.oncontextmenu = (e) => handleRightClick(e, r, c);
-            gridEl.appendChild(tile);
-        }
-    }
-}
-
-function startTimer() {
-    const timer = setInterval(() => {
-        timeLeft--;
-        timerEl.innerText = timeLeft + "s";
-        if (timeLeft <= 0) {
-            clearInterval(timer);
-            isPhaseActive = false;
-            document.getElementById('status-text').innerText = "SIGNAL LOST";
-            logEl.innerText = "[SYSTEM] 신호 단절. 이제부터는 기억과 논리에 의존하십시오.";
-            
-            // 페이즈 종료 시 타일 초기화 (숫자 숨기기)
-            const tiles = document.querySelectorAll('.tile');
-            tiles.forEach(t => {
-                if (!t.classList.contains('open')) {
-                    t.innerText = "";
-                    t.classList.remove('hint-red', 'hint-orange', 'hint-blue');
-                }
-            });
-        }
-    }, 1000);
-}
-
-initGame();
+    startGame();
 </script>
 </body>
 </html>
