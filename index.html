@@ -116,110 +116,153 @@
 
 <script>
     const rows = 10, cols = 8, totalMines = 12;
-    let gridData = [], opened = [];
-    let jangCheng = { r: 0, c: 0 };
-    let isPhaseActive = true;
-    let timeLeft = 20;
+let gridData = [], opened = [], flagged = [];
+let jangCheng = { r: 0, c: 0 };
+let isPhaseActive = true;
+let timeLeft = 20;
 
-    const gridEl = document.getElementById('grid');
-    const timerEl = document.getElementById('timer');
-    const logEl = document.getElementById('log');
+const gridEl = document.getElementById('grid');
+const timerEl = document.getElementById('timer');
+const logEl = document.getElementById('log');
 
-    function initGame() {
-        gridData = Array.from({ length: rows }, () => Array(cols).fill(0));
-        opened = Array.from({ length: rows }, () => Array(cols).fill(false));
-        
-        // 장청 위치 (Target)
-        jangCheng.r = Math.floor(Math.random() * rows);
-        jangCheng.c = Math.floor(Math.random() * cols);
-        gridData[jangCheng.r][jangCheng.c] = 'T';
+function initGame() {
+    // 1. 데이터 초기화
+    gridData = Array.from({ length: rows }, () => Array(cols).fill(0));
+    opened = Array.from({ length: rows }, () => Array(cols).fill(false));
+    flagged = Array.from({ length: rows }, () => Array(cols).fill(false));
+    
+    // 2. 장청 및 조직원 배치 (중복 방지)
+    let placedTarget = false;
+    let placedMines = 0;
 
-        // 조직원 배치 (Mines)
-        let placed = 0;
-        while (placed < totalMines - 1) {
-            let r = Math.floor(Math.random() * rows);
-            let c = Math.floor(Math.random() * cols);
-            if (gridData[r][c] === 0) {
+    while (!placedTarget || placedMines < totalMines - 1) {
+        let r = Math.floor(Math.random() * rows);
+        let c = Math.floor(Math.random() * cols);
+        if (gridData[r][c] === 0) {
+            if (!placedTarget) {
+                jangCheng = { r, c };
+                gridData[r][c] = 'T';
+                placedTarget = true;
+            } else {
                 gridData[r][c] = 'M';
-                placed++;
+                placedMines++;
             }
         }
+    }
 
-        // 주변 숫자 계산
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                if (gridData[r][c] !== 0) continue;
-                let count = 0;
-                for (let i = -1; i <= 1; i++) {
-                    for (let j = -1; j <= 1; j++) {
-                        let nr = r + i, nc = c + j;
-                        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && 
-                           (gridData[nr][nc] === 'M' || gridData[nr][nc] === 'T')) count++;
+    // 3. 인접 지뢰 수 계산
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            if (gridData[r][c] === 'M' || gridData[r][c] === 'T') continue;
+            let count = 0;
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    let nr = r + i, nc = c + j;
+                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+                        if (gridData[nr][nc] === 'M' || gridData[nr][nc] === 'T') count++;
                     }
                 }
-                gridData[r][c] = count;
+            }
+            gridData[r][c] = count;
+        }
+    }
+    renderGrid();
+    startTimer();
+}
+
+// 4. 재귀적 빈칸 확장 로직 (DFS)
+function reveal(r, c) {
+    if (r < 0 || r >= rows || c < 0 || c >= cols || opened[r][c] || flagged[r][c]) return;
+
+    opened[r][c] = true;
+    const tile = gridEl.children[r * cols + c];
+    tile.classList.add('open');
+    
+    // 숫자 표시 (0은 표시하지 않음)
+    if (gridData[r][c] > 0) {
+        tile.innerText = gridData[r][c];
+    } else if (gridData[r][c] === 0) {
+        // 0일 경우 주변 8칸 자동 오픈
+        for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++) {
+                reveal(r + i, c + j);
             }
         }
-        renderGrid();
-        startTimer();
     }
+}
 
-    function renderGrid() {
-        gridEl.innerHTML = '';
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                const tile = document.createElement('div');
-                tile.className = 'tile';
-                tile.dataset.r = r; tile.dataset.c = c;
-                
-                if (isPhaseActive) {
-                    const dist = Math.sqrt(Math.pow(r - jangCheng.r, 2) + Math.pow(c - jangCheng.c, 2));
-                    if (dist <= 2.5) tile.classList.add('hint-red');
-                    else if (dist <= 4.5) tile.classList.add('hint-orange');
-                    else tile.classList.add('hint-blue');
-                    tile.innerText = gridData[r][c] === 'T' || gridData[r][c] === 'M' ? '!' : gridData[r][c];
+function handleTap(r, c) {
+    if (flagged[r][c]) return; // 깃발 꽂힌 곳은 클릭 불가
+
+    if (gridData[r][c] === 'T') {
+        alert("접선 성공! 장청을 안전하게 추출했습니다.");
+        location.reload();
+    } else if (gridData[r][c] === 'M') {
+        alert("작전 실패! 조직원에게 발각되었습니다.");
+        location.reload();
+    } else {
+        reveal(r, c);
+    }
+}
+
+// 5. 우클릭 깃발(추적 표시) 로직
+function handleRightClick(e, r, c) {
+    e.preventDefault();
+    if (opened[r][c]) return;
+
+    flagged[r][c] = !flagged[r][c];
+    const tile = gridEl.children[r * cols + c];
+    tile.innerText = flagged[r][c] ? "🚩" : "";
+    tile.style.color = flagged[r][c] ? "var(--accent-blue)" : "";
+}
+
+function renderGrid() {
+    gridEl.innerHTML = '';
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            
+            // 초기 힌트 페이즈 연출
+            if (isPhaseActive) {
+                const dist = Math.sqrt(Math.pow(r - jangCheng.r, 2) + Math.pow(c - jangCheng.c, 2));
+                if (dist <= 2.5) tile.classList.add('hint-red');
+                else if (dist <= 4.5) tile.classList.add('hint-orange');
+                else tile.classList.add('hint-blue');
+                // 힌트 페이즈일 때는 모든 정보를 살짝 노출 (기획안 유지)
+                tile.innerText = (gridData[r][c] === 'T' || gridData[r][c] === 'M') ? "!" : gridData[r][c];
+            }
+
+            tile.onclick = () => handleTap(r, c);
+            tile.oncontextmenu = (e) => handleRightClick(e, r, c);
+            gridEl.appendChild(tile);
+        }
+    }
+}
+
+function startTimer() {
+    const timer = setInterval(() => {
+        timeLeft--;
+        timerEl.innerText = timeLeft + "s";
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            isPhaseActive = false;
+            document.getElementById('status-text').innerText = "SIGNAL LOST";
+            logEl.innerText = "[SYSTEM] 신호 단절. 이제부터는 기억과 논리에 의존하십시오.";
+            
+            // 페이즈 종료 시 타일 초기화 (숫자 숨기기)
+            const tiles = document.querySelectorAll('.tile');
+            tiles.forEach(t => {
+                if (!t.classList.contains('open')) {
+                    t.innerText = "";
+                    t.classList.remove('hint-red', 'hint-orange', 'hint-blue');
                 }
-
-                tile.onclick = () => handleTap(r, c);
-                gridEl.appendChild(tile);
-            }
+            });
         }
-    }
+    }, 1000);
+}
 
-    function startTimer() {
-        const timer = setInterval(() => {
-            timeLeft--;
-            timerEl.innerText = timeLeft + "s";
-            if (timeLeft <= 0) {
-                clearInterval(timer);
-                isPhaseActive = false;
-                document.getElementById('status-text').innerText = "SIGNAL LOST";
-                document.getElementById('status-text').style.color = "var(--danger-red)";
-                logEl.innerText = "[SYSTEM] 신호가 끊겼습니다. 마지막 위치를 기억하십시오.";
-                renderGrid(); // 힌트 제거를 위한 재랜더링
-            }
-        }, 1000);
-    }
-
-    function handleTap(r, c) {
-        if (opened[r][c]) return;
-        opened[r][c] = true;
-        const tile = gridEl.children[r * cols + c];
-        tile.classList.add('open');
-        tile.classList.remove('hint-red', 'hint-orange', 'hint-blue');
-
-        if (gridData[r][c] === 'T') {
-            alert("접선 성공! 장청을 추출했습니다.");
-            location.reload();
-        } else if (gridData[r][c] === 'M') {
-            alert("작전 실패! 정체가 발각되었습니다.");
-            location.reload();
-        } else {
-            tile.innerText = gridData[r][c];
-        }
-    }
-
-    initGame();
+initGame();
 </script>
 </body>
 </html>
