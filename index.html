@@ -69,7 +69,250 @@
             border: 1px solid #253341;
             display: flex;
             justify-content: center;
+            align-items: center;<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>강철삼림: 언더커버 추출 작전</title>
+    <style>
+        :root {
+            --bg-dark: #050a0f;
+            --panel-bg: #0d151d;
+            --accent-blue: #00e5ff;
+            --danger-red: #ff3e3e;
+            --signal-green: #00ff88;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #e0e0e0;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            display: flex;
+            justify-content: center;
             align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: " ";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #game-container {
+            width: 90%;
+            max-width: 500px;
+            background: var(--panel-bg);
+            border: 1px solid #2a3b4d;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            z-index: 5;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #2a3b4d;
+            padding-bottom: 10px;
+        }
+
+        .status-panel { text-align: center; }
+        .timer { font-size: 1.5rem; color: var(--accent-blue); }
+
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            margin-bottom: 20px;
+        }
+
+        .tile {
+            aspect-ratio: 1;
+            background: #16222c;
+            border: 1px solid #253341;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: color 0.8s ease-out; /* 색상이 서서히 변하는 효과 */
+        }
+
+        .tile.open { background: #050a0f; cursor: default; }
+        
+        /* 힌트 색상 클래스 */
+        .hint-red { color: var(--danger-red); text-shadow: 0 0 5px var(--danger-red); }
+        .hint-orange { color: #ffab40; }
+        .hint-blue { color: var(--accent-blue); }
+        .hint-none { color: #444 !important; text-shadow: none !important; }
+
+        .system-log {
+            background: #000;
+            padding: 10px;
+            font-size: 0.8rem;
+            color: var(--signal-green);
+            height: 40px;
+            border: 1px solid #1a1a1a;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <header>
+        <div class="profile">AGENT<br><span style="color:var(--accent-blue)">ZHOU JIN</span></div>
+        <div class="status-panel">
+            <div id="status-text">DECODING...</div>
+            <div class="timer" id="timer">MISSION START</div>
+        </div>
+        <div class="profile">TARGET<br><span style="color:var(--danger-red)">JANG CHENG</span></div>
+    </header>
+
+    <div id="grid"></div>
+
+    <div class="system-log" id="log">
+        [SYSTEM] 타일을 클릭하여 장청의 신호를 역추적하십시오.
+    </div>
+</div>
+
+<script>
+    const rows = 10, cols = 8, totalMines = 12;
+    const HINT_DURATION = 4000; // 4초 후 색상 증발
+
+    let gridData = [], opened = [], flagged = [];
+    let jangCheng = { r: 0, c: 0 };
+
+    const gridEl = document.getElementById('grid');
+    const logEl = document.getElementById('log');
+
+    function initGame() {
+        gridData = Array.from({ length: rows }, () => Array(cols).fill(0));
+        opened = Array.from({ length: rows }, () => Array(cols).fill(false));
+        flagged = Array.from({ length: rows }, () => Array(cols).fill(false));
+        
+        let placedTarget = false;
+        let placedMines = 0;
+
+        // 1. 장청 및 조직원 배치
+        while (!placedTarget || placedMines < totalMines - 1) {
+            let r = Math.floor(Math.random() * rows);
+            let c = Math.floor(Math.random() * cols);
+            if (gridData[r][c] === 0) {
+                if (!placedTarget) {
+                    jangCheng = { r, c };
+                    gridData[r][c] = 'T';
+                    placedTarget = true;
+                } else {
+                    gridData[r][c] = 'M';
+                    placedMines++;
+                }
+            }
+        }
+
+        // 2. 인접 지뢰 수 계산
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                if (gridData[r][c] === 'M' || gridData[r][c] === 'T') continue;
+                let count = 0;
+                for (let i = -1; i <= 1; i++) {
+                    for (let j = -1; j <= 1; j++) {
+                        let nr = r + i, nc = c + j;
+                        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+                            if (gridData[nr][nc] === 'M' || gridData[nr][nc] === 'T') count++;
+                        }
+                    }
+                }
+                gridData[r][c] = count;
+            }
+        }
+        renderGrid();
+    }
+
+    function renderGrid() {
+        gridEl.innerHTML = '';
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.id = `tile-${r}-${c}`;
+                tile.onclick = () => handleTap(r, c);
+                tile.oncontextmenu = (e) => handleRightClick(e, r, c);
+                gridEl.appendChild(tile);
+            }
+        }
+    }
+
+    function handleTap(r, c) {
+        if (flagged[r][c] || opened[r][c]) return;
+
+        if (gridData[r][c] === 'T') {
+            logEl.innerText = "[SUCCESS] 장청과 접선했습니다. 즉시 현장을 탈출합니다.";
+            setTimeout(() => { alert("접선 성공!"); location.reload(); }, 100);
+        } else if (gridData[r][c] === 'M') {
+            logEl.innerText = "[FAILED] 정체가 발각되었습니다. 작전 실패.";
+            setTimeout(() => { alert("작전 실패!"); location.reload(); }, 100);
+        } else {
+            reveal(r, c);
+        }
+    }
+
+    function reveal(r, c) {
+        if (r < 0 || r >= rows || c < 0 || c >= cols || opened[r][c] || flagged[r][c]) return;
+
+        opened[r][c] = true;
+        const tile = document.getElementById(`tile-${r}-${c}`);
+        tile.classList.add('open');
+
+        if (gridData[r][c] >= 0) {
+            if (gridData[r][c] > 0) tile.innerText = gridData[r][c];
+            
+            // 거리 기반 힌트 색상 적용
+            const dist = Math.sqrt(Math.pow(r - jangCheng.r, 2) + Math.pow(c - jangCheng.c, 2));
+            let hintClass = 'hint-blue';
+            if (dist <= 2.5) hintClass = 'hint-red';
+            else if (dist <= 4.5) hintClass = 'hint-orange';
+            
+            tile.classList.add(hintClass);
+
+            // 타이머: 일정 시간 후 색상 증발
+            setTimeout(() => {
+                tile.classList.remove('hint-red', 'hint-orange', 'hint-blue');
+                tile.classList.add('hint-none');
+            }, HINT_DURATION);
+        }
+
+        // 빈칸일 경우 주변 확산
+        if (gridData[r][c] === 0) {
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    reveal(r + i, c + j);
+                }
+            }
+        }
+    }
+
+    function handleRightClick(e, r, c) {
+        e.preventDefault();
+        if (opened[r][c]) return;
+        flagged[r][c] = !flagged[r][c];
+        const tile = document.getElementById(`tile-${r}-${c}`);
+        tile.innerText = flagged[r][c] ? "🚩" : "";
+        tile.style.color = flagged[r][c] ? "var(--accent-blue)" : "";
+    }
+
+    initGame();
+</script>
+</body>
+</html>
             cursor: pointer;
             font-weight: bold;
             font-size: 0.9rem;
