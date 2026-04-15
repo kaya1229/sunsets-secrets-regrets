@@ -7,27 +7,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic+Coding:wght@400;700&family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* [개편] 금속 및 고전 단말기 테마 컬러 */
-            --bg-dark: #121519; /* 부식된 철판 색 */
-            --monitor-border: #4d4d4d; /* 낡은 알루미늄 색 */
+            --bg-dark: #0d1013;
+            --monitor-border: #4d4d4d;
+            --hack-green: #3fff42; 
             --accent-blue: #00e5ff;
             --danger-red: #ff3e3e;
             --signal-green: #00ff88;
-            
-            /* [수정] 해킹 테마 형광 녹색 (image_3.png 기반) */
-            --hack-green: #3fff42; 
-            
-            /* 힌트 컬러 */
             --hint-red: #ff3030;
             --hint-orange: #ffab40;
             --hint-blue: #40c4ff;
-
             --font-main: 'Nanum Gothic Coding', monospace;
             --font-title: 'Orbitron', sans-serif;
-            
-            /* 금속 질감 패턴 이미지 */
             --texture-iron: url('https://www.transparenttextures.com/patterns/dark-iron.png');
-            --texture-metal: url('https://www.transparenttextures.com/patterns/scratched-metal.png');
         }
 
         body, html { 
@@ -37,155 +28,114 @@
             display: flex; justify-content: center; align-items: center;
         }
 
-        /* 스캔라인 및 노이즈 효과 */
-        body::after {
-            content: " "; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
-            background-size: 100% 4px; z-index: 10000; pointer-events: none; opacity: 0.05;
-        }
-
-        /* [개편] 금속 음각 & 해킹 테마 로그인 화면 */
+        /* [개편] 깔끔한 로그인 화면 */
         #login-screen {
-            width: 550px; height: 500px; 
-            background-color: #1a1d21; background-image: var(--texture-iron); /* 철판 질감 */
-            border: 12px solid #5a5d61; border-image: var(--texture-metal) 30 stretch; /* 낡은 프레임 */
-            padding: 35px; display: flex; flex-direction: column; z-index: 110;
-            box-shadow: inset 0 0 60px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5);
-            position: relative;
-            /* [추가] 로그인 화면 자체에 약간의 깜빡임 연출 */
-            animation: flicker 4s infinite; 
+            width: 500px; text-align: center; display: flex; flex-direction: column; align-items: center;
         }
-
-        @keyframes flicker {
-            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
-            20%, 24%, 55% { opacity: 0.8; }
-            22% { opacity: 0.5; }
+        #intro-image {
+            width: 300px; cursor: pointer; transition: opacity 0.5s, transform 0.3s;
+            opacity: 0.7; filter: drop-shadow(0 0 15px var(--accent-blue)) cyan;
         }
-
-        #terminal-header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #2a2d31; padding-bottom: 15px; }
+        #intro-image:hover { transform: scale(1.05); opacity: 1; }
         
-        /* [수정] 해킹 코드가 오버레이된 음각 제목 효과 */
-        #terminal-header h1 { 
-            font-family: var(--font-title); font-size: 2.8rem; letter-spacing: 12px; 
-            margin: 0; font-weight: 900;
-            color: var(--hack-green); 
-            /* 음각 연출 & 형광 광효과 */
-            text-shadow: 1px 1px 1px rgba(255,255,255,0.05), -1px -1px 1px rgba(0,0,0,0.7), 0 0 15px var(--hack-green);
-        }
-        #terminal-header p { 
-            font-size: 0.85rem; color: #5a5d61; margin: 8px 0; letter-spacing: 3px; 
-            font-weight: bold;
-            text-shadow: 1px 1px 0px rgba(255,255,255,0.02);
+        #access-codes {
+            display: none; color: var(--accent-blue); font-size: 0.9rem; margin: 20px 0;
+            line-height: 1.6; text-shadow: 0 0 5px var(--accent-blue);
         }
 
-        /* [수정] 해킹 코드 스타일 로그 (녹색 & Glow) */
-        #login-log { 
-            flex-grow: 1; font-size: 0.9rem; color: var(--hack-green); overflow-y: auto; line-height: 1.8; 
-            text-shadow: 0 0 5px rgba(63, 255, 66, 0.5); /* 데이터 번짐 연출 */
-            filter: contrast(120%);
-            /* [추가] 랜덤한 데이터 ノイズ 연출을 위한 가짜 스크롤 */
-            position: relative;
+        #login-input-area { margin-top: 20px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        #pass-input { 
+            background: transparent; border: none; color: #fff; outline: none; 
+            font-family: var(--font-main); font-size: 1.1rem; text-align: center;
         }
-        #login-log::-webkit-scrollbar { display: none; }
+        #terminal-footer { margin-top: 30px; font-size: 0.7rem; color: #444; font-family: var(--font-title); }
 
-        /* [수정] 입력창 프롬프트 및 스타일 변경 */
-        #login-input-area { display: none; border-top: 1px solid #2a2d31; padding-top: 15px; margin-top: 10px; }
-        .prompt { color: var(--hack-green); margin-right: 12px; font-weight: bold; font-size: 0.95rem; text-shadow: 0 0 5px var(--hack-green);}
-        #pass-input { background: transparent; border: none; color: #fff; outline: none; font-family: var(--font-main); font-size: 1rem; width: 200px; text-shadow: 0 0 3px #fff; }
-
-        #terminal-footer { text-align: center; font-size: 0.7rem; color: #2a2d31; margin-top: 20px; font-family: var(--font-title); }
-
-        /* 금속 멀티 채널 게임 컨테이너 */
+        /* [개편] 게임 컨테이너 */
         #game-container {
-            display: none; width: 95vw; height: 90vh; max-width: 1000px;
-            background-color: #0d1013; background-image: var(--texture-iron); /* 철판 질감 */
-            border: 15px solid #5a5d61; border-image: var(--texture-metal) 30 stretch;
-            grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr);
-            gap: 12px; padding: 18px; 
-            box-shadow: inset 0 0 50px rgba(0,0,0,1), 0 15px 40px rgba(0,0,0,0.6);
-            position: relative;
+            display: none; width: 95vw; height: 90vh; max-width: 1100px;
+            background-color: var(--bg-dark); background-image: var(--texture-iron);
+            border: 15px solid #333; grid-template-columns: 1fr 350px; grid-template-rows: 1fr 1fr;
+            gap: 15px; padding: 20px; box-shadow: inset 0 0 50px #000;
         }
 
-        .cctv-cell { background: #000; border: 2px solid #1a1a1a; position: relative; overflow: hidden; display: flex; flex-direction: column; }
-        .cctv-label { position: absolute; top: 6px; left: 10px; font-size: 0.7rem; color: #444; font-family: var(--font-title); z-index: 10; letter-spacing: 1px; }
-        .cctv-label.active { color: var(--signal-green); font-weight: bold; text-shadow: 0 0 5px var(--signal-green); }
+        .cctv-cell { background: #000; border: 1px solid #222; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        .cctv-label { position: absolute; top: 8px; left: 10px; font-size: 0.7rem; color: #555; font-family: var(--font-title); z-index: 10; }
 
-        #main-game-channel { grid-column: 1 / 3; grid-row: 1 / 3; display: flex; flex-direction: column; padding: 15px; background: #040608; }
-        
-        #grid { flex-grow: 1; display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; background: #000; padding: 6px; align-self: center; width: 100%; max-width: 420px; }
-        
-        /* 투박한 고철 타일 및 네온 숫자 효과 */
+        /* 메인 게임 피드 */
+        #main-game-channel { grid-row: 1 / 3; padding: 20px; }
+        #global-timer { position: absolute; top: 10px; right: 20px; font-family: var(--font-title); color: var(--signal-green); font-size: 1.8rem; text-shadow: 0 0 10px var(--signal-green); }
+        #grid { flex-grow: 1; display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; align-self: center; width: 100%; max-width: 450px; margin-top: 30px;}
+
+        /* 이미지 스트리밍 채널 (우측 상단) */
+        #image-feed-channel { grid-column: 2; grid-row: 1; justify-content: center; align-items: center; }
+        #status-image { 
+            width: 100%; height: 100%; object-fit: cover; 
+            filter: grayscale(100%) contrast(120%) brightness(80%) sepia(20%) hue-rotate(150deg); /* 홀로그램 느낌 */
+            opacity: 0.6;
+        }
+
+        /* 시스템 로그 채널 (우측 하단) */
+        #log-channel { grid-column: 2; grid-row: 2; padding: 40px 15px 15px; }
+        #info-panel { border-bottom: 1px solid #222; padding-bottom: 10px; margin-bottom: 10px; font-size: 0.85rem; }
+        #log-display { flex-grow: 1; font-size: 0.85rem; color: var(--hack-green); overflow-y: auto; line-height: 1.8; }
+
+        /* 타일 스타일 */
         .tile { 
-            aspect-ratio: 1; 
-            background-color: #1a1d21; background-image: var(--texture-iron); /* 고철 타일 */
-            border: 1px solid #2a2d31; display: flex; justify-content: center; align-items: center; 
-            cursor: pointer; font-size: 1.2rem; font-family: var(--font-title); transition: 0.15s; 
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+            aspect-ratio: 1; background: #161a1f; border: 1px solid #252a30; 
+            display: flex; justify-content: center; align-items: center; cursor: pointer; 
+            font-size: 1.2rem; font-family: var(--font-title); transition: 0.1s;
         }
-        .tile.open { background-color: #000; background-image: none; box-shadow: inset 0 0 10px rgba(0,0,0,1); }
-        
-        /* 네온 광(Glow) 효과가 적용된 색상 힌트 */
-        .tile.open[data-dist="red"] { color: var(--hint-red); text-shadow: 0 0 10px var(--hint-red), 0 0 20px var(--hint-red); }
+        .tile.open { background: #000; border-color: #111; }
+        .tile.open[data-dist="red"] { color: var(--hint-red); text-shadow: 0 0 8px var(--hint-red); }
         .tile.open[data-dist="orange"] { color: var(--hint-orange); text-shadow: 0 0 8px var(--hint-orange); }
         .tile.open[data-dist="blue"] { color: var(--hint-blue); text-shadow: 0 0 8px var(--hint-blue); }
-        .tile.open.✅ { color: var(--accent-blue); text-shadow: 0 0 10px var(--accent-blue); }
-
-        /* 힌트 사라질 때 부드러운 전환 */
-        .tile.open { transition: color 1s ease-out, text-shadow 1s ease-out; }
-        .tile.open.fade { color: #222 !important; text-shadow: none !important; }
-
-        #side-panel { grid-column: 3; grid-row: 1 / 3; display: flex; flex-direction: column; gap: 12px; }
-        .status-box { height: 40%; background: #000; border: 1px solid #1a1a1a; padding: 12px; font-size: 0.8rem; color: #00ffff; }
-        .log-box { height: 60%; background: #000; border: 1px solid #1a1a1a; padding: 12px; font-size: 0.8rem; color: var(--signal-green); overflow-y: auto; }
+        .tile.fade { color: #222 !important; text-shadow: none !important; }
 
         #result-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9000; flex-direction: column; justify-content: center; align-items: center; }
     </style>
 </head>
 <body>
 
-<div id="glass-shatter"></div>
-
 <div id="login-screen">
-    <div id="terminal-header">
-        <h1>강철삼림</h1>
-        <p>OPERATION: STEEL FOREST - CCTV ACCESS</p>
+    <img src="https://your-github-path/steel-forest-logo.png" id="intro-image" alt="강철삼림" onclick="showCodes()">
+    <div id="access-codes">
+        접속 코드 승인됨:<br>
+        [ 저우진 ] - EASY MODE<br>
+        [ 장한성 ] - NORMAL MODE<br>
+        [ 치옌 ] - BOSS MODE
     </div>
-    <div id="login-log"></div>
     <div id="login-input-area">
-        <span class="prompt">CEN: > PSOR ></span> <input type="text" id="pass-input" autocomplete="off">
+        <input type="text" id="pass-input" placeholder="ACCESS CODE" autocomplete="off">
     </div>
     <div id="terminal-footer">made by deokjilkkk</div>
 </div>
 
 <div id="game-container">
     <div id="main-game-channel" class="cctv-cell">
-        <div class="cctv-label active">CH 05 - TARGET AREA (LIVE)</div>
-        <div style="display:flex; justify-content: space-between; margin-bottom: 12px; padding: 0 10px; border-bottom: 1px solid #1a1a1a; padding-bottom: 5px;">
-            <div id="agent-display" style="font-size:0.75rem; color:#00ffff">AGENT: ---</div>
-            <div id="global-timer" style="font-family:var(--font-title); color:var(--signal-green); font-size: 1.4rem; text-shadow: 0 0 5px var(--signal-green);">00:00</div>
-            <div id="objective-display" style="font-size:0.75rem; color:var(--danger-red)">GOAL: J.C</div>
-        </div>
+        <div class="cctv-label">CH 05 - TARGET AREA (LIVE)</div>
+        <div id="global-timer">00:00</div>
         <div id="grid"></div>
     </div>
 
-    <div id="side-panel">
-        <div class="status-box cctv-cell">
-            <div class="cctv-label">CH 08 - DATA STREAM</div>
-            <div id="data-stats" style="margin-top:25px; line-height: 2.2;">
-                Kb/S: 1044 <br> SIGNAL: STABLE <br> TRACE: 0.04% <br> THREAT: LOW
-            </div>
+    <div id="image-feed-channel" class="cctv-cell">
+        <div class="cctv-label">CH 08 - IMAGE FEED</div>
+        <img id="status-image" src="https://your-github-path/idle.png">
+    </div>
+
+    <div id="log-channel" class="cctv-cell">
+        <div class="cctv-label">CH 09 - SYSTEM LOG</div>
+        <div id="info-panel">
+            <div id="agent-display" style="color:var(--accent-blue)">AGENT: ---</div>
+            <div id="goal-display" style="color:var(--danger-red); margin-top:5px;">GOAL: J.C (CONFIDENTIAL)</div>
         </div>
-        <div class="log-box cctv-cell">
-            <div class="cctv-label">CH 09 - SYSTEM LOG</div>
-            <div id="log-display" style="margin-top:25px;"></div>
-        </div>
+        <div id="log-display"></div>
     </div>
 </div>
 
 <div id="result-screen">
-    <h1 id="result-title" style="font-family:var(--font-title); font-size: 3.5rem; letter-spacing: 20px;">STATUS</h1>
-    <p id="result-msg" style="color:#ccc; margin: 25px 0; font-size: 1.1rem; max-width: 80%; line-height: 1.8;"></p>
-    <button onclick="location.reload()" style="background:transparent; border:1px solid #fff; color:#fff; padding:12px 50px; cursor:pointer; font-family:var(--font-title); font-size: 1rem; letter-spacing: 3px;">RE-ATTEMPT</button>
+    <h1 id="result-title" style="font-family:var(--font-title); font-size: 3rem; letter-spacing: 15px;">STATUS</h1>
+    <p id="result-msg" style="color:#ccc; margin: 20px 0;"></p>
+    <button onclick="location.reload()" style="background:transparent; border:1px solid #fff; color:#fff; padding:10px 40px; cursor:pointer;">RE-ATTEMPT</button>
 </div>
 
 <script>
@@ -193,63 +143,39 @@
     let grid = [], opened = [], targetPos = { r: 0, c: 0 };
     let gameActive = false, totalSeconds = 0, hintDuration = 3000, mainTimer, currentMode = "";
 
-    const loginScreen = document.getElementById('login-screen');
-    const loginLog = document.getElementById('login-log');
-    const inputArea = document.getElementById('login-input-area');
-    const passInput = document.getElementById('pass-input');
-    const logEl = document.getElementById('log-display');
+    // 이미지 파일 경로 (사용자 깃허브 경로로 수정 필요)
+    const IMG_PATH = "https://your-github-path/"; 
+    const IMAGES = {
+        safe: IMG_PATH + "a.png",   // 숫자 없는 안전지대
+        warn: IMG_PATH + "b.png",   // 숫자 있는 안전지대
+        mine: IMG_PATH + "c.png",   // 조직원(지뢰)
+        target: IMG_PATH + "d.png", // 장청(타겟)
+        idle: IMG_PATH + "idle.png" // 대기 상태
+    };
 
-    const introMessages = [
-        "▶ 보안 프로토콜 우회 시도 중...",
-        "▶ PSOR_DATA: [OK] BENTI_CIO5: [OK]",
-        "▶ CH 05: 타겟 구역 비디오 피드 확보.",
-        "▶ DECRYPTING... 대기하십시오.",
-        "▶ 작전 코드를 입력하십시오. (저우진/장한성/치옌)"
-    ];
-
-    function startIntro() {
-        let i = 0;
-        const interval = setInterval(() => {
-            if (i < introMessages.length) {
-                const p = document.createElement('div');
-                // [추가] 이미지 속 코드 조각을 로그에 주입 (CEN BELISON CIO5 등)
-                p.innerText = introMessages[i];
-                loginLog.appendChild(p);
-                loginLog.scrollTop = loginLog.scrollHeight;
-                i++;
-            } else {
-                clearInterval(interval);
-                inputArea.style.display = 'block';
-                passInput.focus();
-            }
-        }, 600);
+    function showCodes() {
+        document.getElementById('intro-image').style.display = 'none';
+        document.getElementById('access-codes').style.display = 'block';
+        document.getElementById('pass-input').focus();
     }
-    window.onload = startIntro;
 
-    passInput.addEventListener('keypress', (e) => {
+    document.getElementById('pass-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
-            const val = passInput.value.toUpperCase();
+            const val = e.target.value.toUpperCase();
             if (val === '저우진') proceedLogin("저우진", 180, 5000, "EASY");
             else if (val === '장한성') proceedLogin("장한성", 120, 3000, "NORMAL");
             else if (val === '치옌') proceedLogin("치옌", 120, 1500, "BOSS");
-            else { passInput.value = ""; }
         }
     });
 
     function proceedLogin(name, time, hTime, mode) {
         gameActive = true; totalSeconds = time; hintDuration = hTime; currentMode = mode;
-        loginScreen.style.display = 'none';
+        document.getElementById('login-screen').style.display = 'none';
         document.getElementById('game-container').style.display = 'grid';
         document.getElementById('agent-display').innerText = `AGENT: ${name}`;
-        
-        if (mode === "BOSS") {
-            document.getElementById('game-container').style.borderColor = "var(--danger-red)";
-            document.querySelectorAll('.cctv-label').forEach(l => l.style.color = "var(--danger-red)");
-        }
-
         setupBoard();
         startTimer();
-        addLogEntry("작전 모니터링 시스템 온라인.");
+        addLogEntry("시스템 온라인. 데이터 스트리밍 시작.");
     }
 
     function setupBoard() {
@@ -285,30 +211,40 @@
     }
 
     function addLogEntry(msg) {
+        const logEl = document.getElementById('log-display');
         const entry = document.createElement('div');
         entry.innerText = `▶ ${msg}`;
         logEl.appendChild(entry);
         logEl.scrollTop = logEl.scrollHeight;
     }
 
+    function updateImageFeed(type) {
+        document.getElementById('status-image').src = IMAGES[type];
+    }
+
     async function handleClick(r, c) {
         if (!gameActive || opened[r][c]) return;
-        if (currentMode === "BOSS") {
-            if (grid[r][c] === 'T') showResult(false, "EXPOSED", "정체가 탄로났습니다. 경찰 특공대가 진입합니다.");
-            else if (grid[r][c] === 'M') { reveal(r, c, "✅"); addLogEntry("조직원 제압."); checkWin(); }
-            else { reveal(r, c); addLogEntry("구역 분석."); checkWin(); }
-        } else {
-            if (grid[r][c] === 'T') { reveal(r, c, "⚠️"); addLogEntry("타겟 좌표 확보!"); checkWin(); }
-            else if (grid[r][c] === 'M') {
+        
+        const cell = grid[r][c];
+        if (cell === 'T') {
+            updateImageFeed('target');
+            addLogEntry("신호 감지: 타겟 장청 확인.");
+            reveal(r, c, "⚠️");
+        } else if (cell === 'M') {
+            updateImageFeed('mine');
+            if (currentMode === "BOSS") {
+                addLogEntry("위협 요소 제거 완료.");
+                reveal(r, c, "✅");
+            } else {
                 gameActive = false;
-                document.querySelectorAll('.tile').forEach(t => { 
-                    const [_, tr, tc] = t.id.split('-').map(Number);
-                    if(grid[tr][tc] === 'M') { t.style.background = "var(--danger-red)"; t.innerText = "💣"; t.style.boxShadow = "0 0 15px var(--danger-red)"; }
-                });
-                setTimeout(() => showResult(false, "ELIMINATED", "부비트랩이 폭발했습니다."), 500);
+                showResult(false, "ELIMINATED", "조직원에게 위치가 노출되었습니다.");
             }
-            else { reveal(r, c); addLogEntry("섹터 스캔 완료."); checkWin(); }
+        } else {
+            cell === 0 ? updateImageFeed('safe') : updateImageFeed('warn');
+            addLogEntry(cell === 0 ? "구역 스캔: 안전." : "구역 스캔: 인근 신호 감지.");
+            reveal(r, c);
         }
+        checkWin();
     }
 
     function reveal(r, c, icon = null) {
@@ -318,13 +254,10 @@
         el.classList.add('open');
         
         const dist = Math.sqrt(Math.pow(r-targetPos.r, 2) + Math.pow(c-targetPos.c, 2));
-        const colorKey = dist <= 2.2 ? 'red' : (dist <= 4.3 ? 'orange' : 'blue');
-        el.setAttribute('data-dist', colorKey);
+        el.setAttribute('data-dist', dist <= 2.2 ? 'red' : (dist <= 4.3 ? 'orange' : 'blue'));
 
-        if (icon) {
-            el.innerText = icon;
-            if(icon === '✅') el.className = 'tile open ✅';
-        } else if (grid[r][c] > 0) {
+        if (icon) el.innerText = icon;
+        else if (grid[r][c] > 0) {
             el.innerText = grid[r][c];
             setTimeout(() => { if(el.classList.contains('open')) el.classList.add('fade'); }, hintDuration);
         }
@@ -337,19 +270,8 @@
             if (typeof grid[r][c] === 'number' && !opened[r][c]) safeLeft++;
             if (grid[r][c] === 'M' && !opened[r][c]) minesCleared = false;
         }
-
-        if (currentMode === "BOSS") {
-            if (safeLeft === 0 && minesCleared) {
-                gameActive = false; clearInterval(mainTimer);
-                document.querySelectorAll('.tile').forEach(t => t.style.opacity = '0.3');
-                const targetTile = document.getElementById(`t-${targetPos.r}-${targetPos.c}`);
-                targetTile.style.opacity = '1'; targetTile.style.background = "var(--danger-red)"; 
-                targetTile.style.boxShadow = "0 0 25px var(--danger-red)";
-                targetTile.innerText = "🎯";
-                setTimeout(() => showResult(true, "CLEAN SWEEP", "모든 위협을 제거하고 장청을 확보했습니다."), 2000);
-            }
-        } else {
-            if (foundT && safeLeft === 0) showResult(true, "MISSION COMPLETE", "타겟 확보에 성공했습니다.");
+        if ((currentMode === "BOSS" && safeLeft === 0 && minesCleared) || (currentMode !== "BOSS" && foundT && safeLeft === 0)) {
+            showResult(true, "MISSION COMPLETE", "장청 확보 및 구역 제어 성공.");
         }
     }
 
@@ -358,11 +280,12 @@
             totalSeconds--;
             const m = Math.floor(totalSeconds/60), s = totalSeconds%60;
             document.getElementById('global-timer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-            if (totalSeconds <= 0) showResult(false, "SIGNAL LOST", "데이터 역추적 시간 초과.");
+            if (totalSeconds <= 0) showResult(false, "SIGNAL LOST", "데이터 추적 시간 초과.");
         }, 1000);
     }
 
     function showResult(isSuccess, title, msg) {
+        gameActive = false;
         clearInterval(mainTimer);
         document.getElementById('result-screen').style.display = 'flex';
         document.getElementById('result-title').innerText = title;
