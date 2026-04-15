@@ -23,7 +23,6 @@
             align-items: center;
             height: 100vh;
             overflow: hidden;
-            position: relative;
         }
 
         /* CCTV 스캔라인 */
@@ -31,42 +30,59 @@
             content: " ";
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.1) 50%), 
+                        linear-gradient(90deg, rgba(255,0,0,0.02), rgba(0,255,0,0.01), rgba(0,0,255,0.02));
             background-size: 100% 4px, 3px 100%;
             pointer-events: none;
             z-index: 10;
         }
 
+        /* 시작 화면 스타일 */
+        #start-screen {
+            text-align: center;
+            z-index: 20;
+            background: var(--panel-bg);
+            padding: 40px;
+            border: 1px solid var(--accent-blue);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+        }
+
+        input {
+            background: #000;
+            border: 1px solid var(--accent-blue);
+            color: var(--accent-blue);
+            padding: 10px;
+            font-family: inherit;
+            text-align: center;
+            margin-top: 20px;
+            outline: none;
+        }
+
+        .mode-hint { font-size: 0.7rem; color: #555; margin-top: 20px; text-align: left; }
+
+        /* 게임 화면 스타일 */
         #game-container {
-            width: 360px; /* 고정폭으로 설정하여 레이아웃 붕괴 방지 */
+            display: none;
+            width: 360px;
             background: var(--panel-bg);
             border: 1px solid #2a3b4d;
             padding: 20px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.7);
-            position: relative;
             z-index: 5;
         }
 
         header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
             margin-bottom: 15px;
             border-bottom: 1px solid #2a3b4d;
             padding-bottom: 10px;
             font-size: 0.8rem;
         }
 
-        .status-panel { text-align: center; flex-grow: 1; }
-        .timer-text { font-size: 1.2rem; color: var(--accent-blue); font-weight: bold; margin-top: 5px; }
+        .timer-red { color: var(--danger-red) !important; animation: blink 0.5s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-        #grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 5px;
-            margin-bottom: 15px;
-        }
+        #grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; margin-bottom: 15px; }
 
         .tile {
             aspect-ratio: 1;
@@ -77,14 +93,10 @@
             align-items: center;
             cursor: pointer;
             font-weight: bold;
-            font-size: 1.1rem;
             transition: color 0.6s ease-out;
         }
 
-        .tile:hover { background: #1f2f3d; }
-        .tile.open { background: #050a0f; cursor: default; border-color: #0d151d; }
-        
-        /* 힌트 컬러 */
+        .tile.open { background: #050a0f; cursor: default; }
         .hint-red { color: var(--danger-red); text-shadow: 0 0 8px var(--danger-red); }
         .hint-orange { color: #ffab40; }
         .hint-blue { color: var(--accent-blue); }
@@ -97,18 +109,28 @@
             color: var(--signal-green);
             height: 45px;
             border: 1px solid #1a1a1a;
-            line-height: 1.4;
         }
     </style>
 </head>
 <body>
 
+<div id="start-screen">
+    <h2 style="color:var(--accent-blue); letter-spacing: 2px;">ACCESS RESTRICTED</h2>
+    <p style="font-size:0.8rem;">보안 암호를 입력하십시오.</p>
+    <input type="text" id="pass-input" placeholder="PASSWORD" autocomplete="off">
+    <div class="mode-hint">
+        * 저우진: ZHOU12 (EASY)<br>
+        * 장한성: BRAIN9 (NORMAL)<br>
+        * 보스: BOSS00 (HARD)
+    </div>
+</div>
+
 <div id="game-container">
     <header>
-        <div>AGENT<br><span style="color:var(--accent-blue)">ZHOU JIN</span></div>
-        <div class="status-panel">
-            <div style="font-size: 0.7rem; color: #666;">OPERATION: UNDERCOVER</div>
-            <div class="timer-text" id="status-display">DECODING...</div>
+        <div>AGENT<br><span id="agent-name" style="color:var(--accent-blue)">---</span></div>
+        <div style="text-align: center;">
+            <div style="font-size: 0.6rem; color: #666;">LIMIT TIME</div>
+            <div id="global-timer" style="font-size: 1.2rem; color: var(--signal-green);">00:00</div>
         </div>
         <div style="text-align:right">TARGET<br><span style="color:var(--danger-red)">JANG CHENG</span></div>
     </header>
@@ -116,48 +138,56 @@
     <div id="grid"></div>
 
     <div class="system-log" id="log-display">
-        [SYSTEM] 장청의 신호 반경을 추적 중입니다. 타일을 열어 위치를 특정하십시오.
+        [SYSTEM] 타일을 클릭하여 추출 작전을 시작하십시오.
     </div>
 </div>
 
 <script>
-    const ROWS = 10;
-    const COLS = 8;
-    const MINES_COUNT = 12;
-    const HINT_TIME = 4000; 
+    const ROWS = 10, COLS = 8, MINES_COUNT = 12;
+    let grid = [], opened = [], flagged = [], targetPos = { r: 0, c: 0 };
+    let gameActive = false, totalSeconds = 0, hintDuration = 4000;
+    let mainTimer;
 
-    let grid = [];
-    let opened = [];
-    let flagged = [];
-    let targetPos = { r: 0, c: 0 };
+    const passInput = document.getElementById('pass-input');
+    const startScreen = document.getElementById('start-screen');
+    const gameContainer = document.getElementById('game-container');
 
-    const gridEl = document.getElementById('grid');
-    const logEl = document.getElementById('log-display');
+    // 1. 암호 확인 및 모드 설정
+    passInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const val = passInput.value.toUpperCase();
+            if (val === 'ZHOU12') initGame("저우진", 180, 8000);
+            else if (val === 'BRAIN9') initGame("장한성", 120, 4000);
+            else if (val === 'BOSS00') initGame("보스", 60, 1500);
+            else {
+                alert("ACCESS DENIED: 유효하지 않은 암호입니다.");
+                passInput.value = "";
+            }
+        }
+    });
 
-    function startGame() {
+    function initGame(name, time, hintTime) {
+        document.getElementById('agent-name').innerText = name;
+        totalSeconds = time;
+        hintDuration = hintTime;
+        startScreen.style.display = 'none';
+        gameContainer.style.display = 'block';
+        gameActive = true;
+
+        // 그리드 생성
         grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
         opened = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
         flagged = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
 
-        // 장청 & 조직원 배치
-        let targetSet = false;
-        let minesSet = 0;
-        while (!targetSet || minesSet < MINES_COUNT - 1) {
-            let r = Math.floor(Math.random() * ROWS);
-            let c = Math.floor(Math.random() * COLS);
+        let tSet = false, mSet = 0;
+        while (!tSet || mSet < MINES_COUNT - 1) {
+            let r = Math.floor(Math.random() * ROWS), c = Math.floor(Math.random() * COLS);
             if (grid[r][c] === 0) {
-                if (!targetSet) {
-                    targetPos = { r, c };
-                    grid[r][c] = 'T';
-                    targetSet = true;
-                } else {
-                    grid[r][c] = 'M';
-                    minesSet++;
-                }
+                if (!tSet) { targetPos = { r, c }; grid[r][c] = 'T'; tSet = true; }
+                else { grid[r][c] = 'M'; mSet++; }
             }
         }
 
-        // 인접 지뢰 계산
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS; c++) {
                 if (grid[r][c] === 'M' || grid[r][c] === 'T') continue;
@@ -173,10 +203,29 @@
                 grid[r][c] = count;
             }
         }
+
         drawGrid();
+        startGlobalTimer();
+    }
+
+    function startGlobalTimer() {
+        mainTimer = setInterval(() => {
+            totalSeconds--;
+            updateTimerDisplay();
+            if (totalSeconds <= 0) endGame("TIME OVER: 작전 실패. 증거가 인멸되었습니다.");
+        }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        const m = Math.floor(totalSeconds / 60);
+        const s = totalSeconds % 60;
+        const display = document.getElementById('global-timer');
+        display.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        if (totalSeconds <= 10) display.classList.add('timer-red');
     }
 
     function drawGrid() {
+        const gridEl = document.getElementById('grid');
         gridEl.innerHTML = '';
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS; c++) {
@@ -184,70 +233,48 @@
                 div.className = 'tile';
                 div.id = `t-${r}-${c}`;
                 div.onclick = () => handleClick(r, c);
-                div.oncontextmenu = (e) => {
-                    e.preventDefault();
-                    handleRightClick(r, c);
-                };
+                div.oncontextmenu = (e) => { e.preventDefault(); handleRightClick(r, c); };
                 gridEl.appendChild(div);
             }
         }
     }
 
     function handleClick(r, c) {
-        if (opened[r][c] || flagged[r][c]) return;
-
-        if (grid[r][c] === 'T') {
-            logEl.innerText = "[SUCCESS] 장청 구출 성공. 통신망을 폐쇄합니다.";
-            setTimeout(() => { alert("Mission Clear"); location.reload(); }, 200);
-        } else if (grid[r][c] === 'M') {
-            logEl.innerText = "[WARNING] 조직원에게 발각됨. 작전 즉시 중단.";
-            setTimeout(() => { alert("Mission Failed"); location.reload(); }, 200);
-        } else {
-            processReveal(r, c);
-        }
+        if (!gameActive || opened[r][c] || flagged[r][c]) return;
+        if (grid[r][c] === 'T') endGame("SUCCESS: 장청을 확보했습니다.");
+        else if (grid[r][c] === 'M') endGame("FAILED: 정체가 노출되었습니다.");
+        else reveal(r, c);
     }
 
-    function processReveal(r, c) {
+    function reveal(r, c) {
         if (r < 0 || r >= ROWS || c < 0 || c >= COLS || opened[r][c] || flagged[r][c]) return;
-
         opened[r][c] = true;
         const el = document.getElementById(`t-${r}-${c}`);
         el.classList.add('open');
-
         if (grid[r][c] > 0) el.innerText = grid[r][c];
 
-        // 힌트 컬러 적용
         const dist = Math.sqrt(Math.pow(r - targetPos.r, 2) + Math.pow(c - targetPos.c, 2));
-        let colorClass = 'hint-blue';
-        if (dist <= 2.2) colorClass = 'hint-red';
-        else if (dist <= 4.2) colorClass = 'hint-orange';
-        
-        el.classList.add(colorClass);
+        let cls = dist <= 2.2 ? 'hint-red' : (dist <= 4.2 ? 'hint-orange' : 'hint-blue');
+        el.classList.add(cls);
 
-        // 타이머 설정
-        setTimeout(() => {
-            el.classList.remove('hint-red', 'hint-orange', 'hint-blue');
-            el.classList.add('hint-none');
-        }, HINT_TIME);
-
-        // 주변 0일 때 자동 확장
+        setTimeout(() => { el.classList.remove('hint-red', 'hint-orange', 'hint-blue'); el.classList.add('hint-none'); }, hintDuration);
         if (grid[r][c] === 0) {
-            for (let i = -1; i <= 1; i++) {
-                for (let j = -1; j <= 1; j++) {
-                    processReveal(r + i, c + j);
-                }
-            }
+            for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) reveal(r + i, c + j);
         }
     }
 
     function handleRightClick(r, c) {
-        if (opened[r][c]) return;
+        if (!gameActive || opened[r][c]) return;
         flagged[r][c] = !flagged[r][c];
-        const el = document.getElementById(`t-${r}-${c}`);
-        el.innerText = flagged[r][c] ? "🚩" : "";
+        document.getElementById(`t-${r}-${c}`).innerText = flagged[r][c] ? "🚩" : "";
     }
 
-    startGame();
+    function endGame(msg) {
+        gameActive = false;
+        clearInterval(mainTimer);
+        alert(msg);
+        location.reload();
+    }
 </script>
 </body>
 </html>
