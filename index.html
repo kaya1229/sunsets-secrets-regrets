@@ -11,10 +11,13 @@
             --bg-dark: #121519; /* 부식된 철판 색 */
             --monitor-border: #4d4d4d; /* 낡은 알루미늄 색 */
             --accent-blue: #00e5ff;
-            --system-blue: #00aaff;
             --danger-red: #ff3e3e;
             --signal-green: #00ff88;
-            /* 힌트 컬러 (Glow 효과 포함) */
+            
+            /* [수정] 해킹 테마 형광 녹색 (image_3.png 기반) */
+            --hack-green: #3fff42; 
+            
+            /* 힌트 컬러 */
             --hint-red: #ff3030;
             --hint-orange: #ffab40;
             --hint-blue: #40c4ff;
@@ -22,7 +25,7 @@
             --font-main: 'Nanum Gothic Coding', monospace;
             --font-title: 'Orbitron', sans-serif;
             
-            /* [추가] 금속 질감 패턴 이미지 */
+            /* 금속 질감 패턴 이미지 */
             --texture-iron: url('https://www.transparenttextures.com/patterns/dark-iron.png');
             --texture-metal: url('https://www.transparenttextures.com/patterns/scratched-metal.png');
         }
@@ -41,39 +44,58 @@
             background-size: 100% 4px; z-index: 10000; pointer-events: none; opacity: 0.05;
         }
 
-        /* [개편] 금속 음각 로그인 화면 */
+        /* [개편] 금속 음각 & 해킹 테마 로그인 화면 */
         #login-screen {
-            width: 550px; height: 480px; 
+            width: 550px; height: 500px; 
             background-color: #1a1d21; background-image: var(--texture-iron); /* 철판 질감 */
             border: 12px solid #5a5d61; border-image: var(--texture-metal) 30 stretch; /* 낡은 프레임 */
-            padding: 30px; display: flex; flex-direction: column; z-index: 110;
+            padding: 35px; display: flex; flex-direction: column; z-index: 110;
             box-shadow: inset 0 0 60px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5);
             position: relative;
+            /* [추가] 로그인 화면 자체에 약간의 깜빡임 연출 */
+            animation: flicker 4s infinite; 
+        }
+
+        @keyframes flicker {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+            20%, 24%, 55% { opacity: 0.8; }
+            22% { opacity: 0.5; }
         }
 
         #terminal-header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #2a2d31; padding-bottom: 15px; }
         
-        /* [수정] 금속판 음각 제목 효과 */
+        /* [수정] 해킹 코드가 오버레이된 음각 제목 효과 */
         #terminal-header h1 { 
             font-family: var(--font-title); font-size: 2.8rem; letter-spacing: 12px; 
             margin: 0; font-weight: 900;
-            /* 음각 연출 */
-            color: #1a1d21; /* 철판과 같은 색 */
-            text-shadow: 1px 1px 1px rgba(255,255,255,0.1), -1px -1px 1px rgba(0,0,0,0.7);
+            color: var(--hack-green); 
+            /* 음각 연출 & 형광 광효과 */
+            text-shadow: 1px 1px 1px rgba(255,255,255,0.05), -1px -1px 1px rgba(0,0,0,0.7), 0 0 15px var(--hack-green);
         }
         #terminal-header p { 
-            font-size: 0.85rem; color: #3a3d41; margin: 8px 0; letter-spacing: 3px; 
+            font-size: 0.85rem; color: #5a5d61; margin: 8px 0; letter-spacing: 3px; 
             font-weight: bold;
-            text-shadow: 1px 1px 0px rgba(255,255,255,0.05);
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.02);
         }
 
-        #login-log { flex-grow: 1; font-size: 0.9rem; color: #555; overflow-y: auto; line-height: 1.6; }
+        /* [수정] 해킹 코드 스타일 로그 (녹색 & Glow) */
+        #login-log { 
+            flex-grow: 1; font-size: 0.9rem; color: var(--hack-green); overflow-y: auto; line-height: 1.8; 
+            text-shadow: 0 0 5px rgba(63, 255, 66, 0.5); /* 데이터 번짐 연출 */
+            filter: contrast(120%);
+            /* [추가] 랜덤한 데이터 ノイズ 연출을 위한 가짜 스크롤 */
+            position: relative;
+        }
+        #login-log::-webkit-scrollbar { display: none; }
+
+        /* [수정] 입력창 프롬프트 및 스타일 변경 */
         #login-input-area { display: none; border-top: 1px solid #2a2d31; padding-top: 15px; margin-top: 10px; }
-        #pass-input { background: transparent; border: none; color: #fff; outline: none; font-family: var(--font-main); font-size: 1rem; width: 200px; }
+        .prompt { color: var(--hack-green); margin-right: 12px; font-weight: bold; font-size: 0.95rem; text-shadow: 0 0 5px var(--hack-green);}
+        #pass-input { background: transparent; border: none; color: #fff; outline: none; font-family: var(--font-main); font-size: 1rem; width: 200px; text-shadow: 0 0 3px #fff; }
 
         #terminal-footer { text-align: center; font-size: 0.7rem; color: #2a2d31; margin-top: 20px; font-family: var(--font-title); }
 
-        /* [개편] 금속 멀티 채널 게임 컨테이너 */
+        /* 금속 멀티 채널 게임 컨테이너 */
         #game-container {
             display: none; width: 95vw; height: 90vh; max-width: 1000px;
             background-color: #0d1013; background-image: var(--texture-iron); /* 철판 질감 */
@@ -92,7 +114,7 @@
         
         #grid { flex-grow: 1; display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; background: #000; padding: 6px; align-self: center; width: 100%; max-width: 420px; }
         
-        /* [개편] 투박한 고철 타일 및 네온 숫자 효과 */
+        /* 투박한 고철 타일 및 네온 숫자 효과 */
         .tile { 
             aspect-ratio: 1; 
             background-color: #1a1d21; background-image: var(--texture-iron); /* 고철 타일 */
@@ -102,18 +124,18 @@
         }
         .tile.open { background-color: #000; background-image: none; box-shadow: inset 0 0 10px rgba(0,0,0,1); }
         
-        /* [수정] 네온 광(Glow) 효과가 적용된 색상 힌트 */
+        /* 네온 광(Glow) 효과가 적용된 색상 힌트 */
         .tile.open[data-dist="red"] { color: var(--hint-red); text-shadow: 0 0 10px var(--hint-red), 0 0 20px var(--hint-red); }
         .tile.open[data-dist="orange"] { color: var(--hint-orange); text-shadow: 0 0 8px var(--hint-orange); }
         .tile.open[data-dist="blue"] { color: var(--hint-blue); text-shadow: 0 0 8px var(--hint-blue); }
         .tile.open.✅ { color: var(--accent-blue); text-shadow: 0 0 10px var(--accent-blue); }
 
-        /* [수정] 힌트 사라질 때 부드러운 전환 */
+        /* 힌트 사라질 때 부드러운 전환 */
         .tile.open { transition: color 1s ease-out, text-shadow 1s ease-out; }
         .tile.open.fade { color: #222 !important; text-shadow: none !important; }
 
         #side-panel { grid-column: 3; grid-row: 1 / 3; display: flex; flex-direction: column; gap: 12px; }
-        .status-box { height: 40%; background: #000; border: 1px solid #1a1a1a; padding: 12px; font-size: 0.8rem; color: var(--system-blue); }
+        .status-box { height: 40%; background: #000; border: 1px solid #1a1a1a; padding: 12px; font-size: 0.8rem; color: #00ffff; }
         .log-box { height: 60%; background: #000; border: 1px solid #1a1a1a; padding: 12px; font-size: 0.8rem; color: var(--signal-green); overflow-y: auto; }
 
         #result-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9000; flex-direction: column; justify-content: center; align-items: center; }
@@ -130,7 +152,7 @@
     </div>
     <div id="login-log"></div>
     <div id="login-input-area">
-        <span class="prompt" style="color:var(--accent-blue)">ROOT@SYS:~$</span> <input type="text" id="pass-input" autocomplete="off">
+        <span class="prompt">CEN: > PSOR ></span> <input type="text" id="pass-input" autocomplete="off">
     </div>
     <div id="terminal-footer">made by deokjilkkk</div>
 </div>
@@ -139,7 +161,7 @@
     <div id="main-game-channel" class="cctv-cell">
         <div class="cctv-label active">CH 05 - TARGET AREA (LIVE)</div>
         <div style="display:flex; justify-content: space-between; margin-bottom: 12px; padding: 0 10px; border-bottom: 1px solid #1a1a1a; padding-bottom: 5px;">
-            <div id="agent-display" style="font-size:0.75rem; color:var(--system-blue)">AGENT: ---</div>
+            <div id="agent-display" style="font-size:0.75rem; color:#00ffff">AGENT: ---</div>
             <div id="global-timer" style="font-family:var(--font-title); color:var(--signal-green); font-size: 1.4rem; text-shadow: 0 0 5px var(--signal-green);">00:00</div>
             <div id="objective-display" style="font-size:0.75rem; color:var(--danger-red)">GOAL: J.C</div>
         </div>
@@ -179,8 +201,9 @@
 
     const introMessages = [
         "▶ 보안 프로토콜 우회 시도 중...",
+        "▶ PSOR_DATA: [OK] BENTI_CIO5: [OK]",
         "▶ CH 05: 타겟 구역 비디오 피드 확보.",
-        "▶ 시스템 통합 중... 대기하십시오.",
+        "▶ DECRYPTING... 대기하십시오.",
         "▶ 작전 코드를 입력하십시오. (저우진/장한성/치옌)"
     ];
 
@@ -189,6 +212,7 @@
         const interval = setInterval(() => {
             if (i < introMessages.length) {
                 const p = document.createElement('div');
+                // [추가] 이미지 속 코드 조각을 로그에 주입 (CEN BELISON CIO5 등)
                 p.innerText = introMessages[i];
                 loginLog.appendChild(p);
                 loginLog.scrollTop = loginLog.scrollHeight;
@@ -293,7 +317,6 @@
         const el = document.getElementById(`t-${r}-${c}`);
         el.classList.add('open');
         
-        // [수정] 거리 기반 색상 힌트 속성 설정
         const dist = Math.sqrt(Math.pow(r-targetPos.r, 2) + Math.pow(c-targetPos.c, 2));
         const colorKey = dist <= 2.2 ? 'red' : (dist <= 4.3 ? 'orange' : 'blue');
         el.setAttribute('data-dist', colorKey);
@@ -303,7 +326,6 @@
             if(icon === '✅') el.className = 'tile open ✅';
         } else if (grid[r][c] > 0) {
             el.innerText = grid[r][c];
-            // [수정] 일정 시간 후 힌트 사라지는 연출 (fade 클래스 사용)
             setTimeout(() => { if(el.classList.contains('open')) el.classList.add('fade'); }, hintDuration);
         }
         if (grid[r][c] === 0) for (let i=-1; i<=1; i++) for (let j=-1; j<=1; j++) reveal(r+i, c+j);
