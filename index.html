@@ -80,7 +80,23 @@
 
         #log-channel { grid-column: 2; grid-row: 2; padding: 40px 15px 15px; }
         #info-panel { border-bottom: 1px solid #222; padding-bottom: 10px; margin-bottom: 10px; font-size: 0.85rem; }
-        #log-display { flex-grow: 1; font-size: 0.85rem; color: var(--hack-green); overflow-y: auto; line-height: 1.8; }
+        /* 1. 로그 디스플레이 영역의 스크롤바 숨기기 */
+#log-display {
+    flex-grow: 1;
+    font-size: 0.85rem;
+    color: var(--hack-green);
+    overflow-y: auto;       /* 스크롤 기능은 유지 */
+    line-height: 1.8;
+    
+    /* 스크롤바 숨기기 로직 */
+    -ms-overflow-style: none;  /* IE 및 엣지 */
+    scrollbar-width: none;     /* 파이어폭스 */
+}
+
+/* 2. 크롬, 사파리, 최신 엣지용 스크롤바 숨기기 */
+#log-display::-webkit-scrollbar {
+    display: none;             /* 스크롤바가 보이지 않게 처리 */
+}
 
         .tile { 
             aspect-ratio: 1; background: #161a1f; border: 1px solid #252a30; 
