@@ -31,21 +31,43 @@
         #login-screen {
             width: 500px; text-align: center; display: flex; flex-direction: column; align-items: center;
         }
-        #intro-image {
+        /* 기본 상태 (아이디어 2 유지, 약간 어둡게) */
+#intro-image {
     width: 300px; 
     cursor: pointer; 
-    transition: all 0.5s ease-in-out;
-    opacity: 0.7; 
+    transition: all 0.3s ease-in-out; /* 반응 속도 빠르게 */
+    opacity: 0.6; 
     
-    /* [핵심] 배경을 날리고 선 색상 변경 */
+    /* 배경 투명화 + 블루 선 효과 (아이디어 2) */
     filter: 
         grayscale(100%)
-        /* 밝은 배경을 투명하게 만듦 (검은 선만 남음) */
         screen
-        /* 남은 검은 선을 흰색/푸른색으로 반전 */
         invert(100%) 
         sepia(100%) hue-rotate(180deg) saturate(300%) 
-        drop-shadow(0 0 8px var(--accent-blue));
+        drop-shadow(0 0 5px var(--accent-blue));
+}
+
+/* [수정] 마우스 호버 시: 지지직거리는 노이즈 및 강렬한 광채 */
+#intro-image:hover { 
+    opacity: 1; 
+    /* 더 강렬한 블루 광채 */
+    filter: 
+        grayscale(100%) screen invert(100%) 
+        sepia(100%) hue-rotate(180deg) saturate(500%) brightness(1.3)
+        drop-shadow(0 0 15px var(--accent-blue)) drop-shadow(0 0 5px #fff);
+    
+    /* 지지직거리는 애니메이션 실행 */
+    animation: glitch-shake 0.3s infinite;
+}
+
+/* [추가] 지지직거리는 애니메이션 정의 */
+@keyframes glitch-shake {
+    0% { transform: translate(0, 0) skew(0deg); }
+    20% { transform: translate(-2px, 2px) skew(1deg); }
+    40% { transform: translate(2px, -2px) skew(-1deg); }
+    60% { transform: translate(-1px, -1px) skew(0deg); }
+    80% { transform: translate(3px, 1px) skew(1deg); }
+    100% { transform: translate(0, 0) skew(0deg); }
 }
         
         #access-codes {
@@ -184,17 +206,19 @@ const IMAGES = {
 };
 
     // 1. 하단 푸터 클릭 시 로고를 boss.jpeg로 변경
+// 하단 푸터 클릭 시 실행
 function unlockHiddenPath() {
     isHiddenPathUnlocked = true;
     const logo = document.getElementById('intro-image');
     
-    // 로고 이미지를 boss.jpeg로 변경
+    // 1. 이미지 교체
     logo.src = "boss.jpeg"; 
     
-    // 시각적 효과 (강렬한 붉은 광채)
-    logo.style.filter = "drop-shadow(0 0 20px var(--danger-red)) brightness(1.2)";
+    // 2. [추가] 치옌 모드 전용 붉은색 필터로 강제 변경 (원한다면 적용)
+    // 이 한 줄을 넣으면 boss.jpeg로 바뀔 때만 빨간색 선으로 보입니다.
+    logo.style.filter = "grayscale(100%) sepia(100%) hue-rotate(320deg) saturate(600%) brightness(1.1) drop-shadow(0 0 15px var(--danger-red))";
     
-    addLogEntry("경고: 비인가 경로를 통한 데이터 오버라이드 감지.");
+    addLogEntry("CRITICAL: 비인가 시스템 접속. BOSS 모드 잠금 해제.");
 }
 
 // 2. 로고 클릭 시 실행 (isHiddenPathUnlocked 상태에 따라 텍스트 변경)
