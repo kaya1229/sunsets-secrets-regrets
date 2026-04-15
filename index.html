@@ -55,7 +55,6 @@
         .prompt { color: var(--accent-blue); margin-right: 10px; font-weight: bold; }
         #login-input-area input { background: transparent; border: none; color: #fff; width: 250px; outline: none; font-family: inherit; font-size: 1rem; }
 
-        /* BOSS 모드 시각 효과 클래스 */
         .boss-alert-ui { border-color: var(--danger-red) !important; box-shadow: 0 0 30px rgba(255, 62, 62, 0.4) !important; }
         .boss-alert-text { color: var(--danger-red) !important; text-shadow: 0 0 5px var(--danger-red) !important; }
 
@@ -64,13 +63,18 @@
         .timer-val { font-size: 1.8rem; color: var(--signal-green); font-weight: bold; }
         
         #grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; background: #080d12; padding: 5px; }
-        .tile { aspect-ratio: 1; background: #16222c; border: 1px solid #253341; display: flex; justify-content: center; align-items: center; cursor: pointer; font-weight: bold; font-size: 1.2rem; transition: 0.1s; }
+        .tile { aspect-ratio: 1; background: #16222c; border: 1px solid #253341; display: flex; justify-content: center; align-items: center; cursor: pointer; font-weight: bold; font-size: 1.2rem; transition: 0.2s; }
         .tile.open { background: var(--bg-dark); cursor: default; }
         
         .txt-red { color: var(--danger-red) !important; text-shadow: 0 0 8px var(--danger-red); }
         .txt-orange { color: #ffab40 !important; text-shadow: 0 0 8px #ffab40; }
         .txt-blue { color: var(--accent-blue) !important; text-shadow: 0 0 8px var(--accent-blue); }
         .txt-none { color: #556a7d; }
+
+        /* [수정] 피날레 효과 */
+        .dimmed { opacity: 0.2; transform: scale(0.9); }
+        .target-highlight { background: var(--danger-red) !important; color: #fff !important; box-shadow: 0 0 20px var(--danger-red); transform: scale(1.1); z-index: 50; animation: pulse-red 0.5s infinite alternate; }
+        @keyframes pulse-red { from { box-shadow: 0 0 10px var(--danger-red); } to { box-shadow: 0 0 30px var(--danger-red); } }
 
         .system-log { 
             margin-top: 20px; background: #000; padding: 10px; 
@@ -135,9 +139,10 @@
         "▶ 창펑 작전 확인.",
         "▶ 창펑 작전에 투입된 자의 신분 확인 및 작전내용 확인 중...",
         "▶ [성명 : 장청] ",
-        "▶ [작전내용 : 조직에 잠입하여, 조직의 거래 내용 수집 및 라오셰의 정체 밝히기]",
-        "▶ [업데이트 : 창펑작전의 주도자 야오웨이하이 팀장 사망. 신변보호 필요.]",
-        "▶ 장청과 접선하여 조직의 정보를 입수하고, 장청의 신변을 확보하시오.",
+        "▶ [작전내용 : 조직 정보 수집 및 라오셰의 정체 확인]",
+        "▶ [업데이트 : 창펑작전의 주도자 야오웨이하이 팀장 사망]",
+        "▶ [업데이트 : 장청의 신변보호 필요]",
+        "▶ 장청과 접선하여 신변을 확보하시오.",
         "▶ 작전개시를 위해 이름/암호를 입력하시오. (저우진/장한성)"
     ];
 
@@ -183,7 +188,6 @@
 
     function proceedLogin(name, time, hTime, mode) {
         if (mode === "BOSS") {
-            // BOSS 모드 전용 붉은색 연출
             loginScreen.classList.add('boss-alert-ui');
             loginLog.classList.add('boss-alert-text');
             document.getElementById('terminal-prompt').classList.add('boss-alert-text');
@@ -209,8 +213,7 @@
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('game-container').style.display = 'block';
         document.getElementById('agent-name').innerText = name;
-        if(mode === "BOSS") document.getElementById('target-goal').innerText = "CLEAN SWEEP";
-        else document.getElementById('target-goal').innerText = "JANG CHENG";
+        document.getElementById('target-goal').innerText = (mode === "BOSS") ? "TARGET: J.C" : "JANG CHENG";
         
         logEl.innerHTML = ""; 
         addLogEntry("작전 구역 접속 완료. 타겟의 신호 흔적 분석 시작.");
@@ -266,8 +269,8 @@
         if (!gameActive || opened[r][c]) return;
         if (currentMode === "BOSS") {
             if (grid[r][c] === 'T') triggerShatterEffect();
-            else if (grid[r][c] === 'M') { reveal(r, c, "✅"); addLogEntry("조직원 신원 확인. 포위망 좁히는 중..."); checkWin(); }
-            else { reveal(r, c); addLogEntry("안전 구역 데이터 스캔 완료."); }
+            else if (grid[r][c] === 'M') { reveal(r, c, "✅"); addLogEntry("조직원 신원 확인 완료. 배신자 압박 중..."); checkWin(); }
+            else { reveal(r, c); addLogEntry("안전 구역 데이터 스캔 완료."); checkWin(); }
         } else {
             if (grid[r][c] === 'T') { reveal(r, c, "⚠️"); addLogEntry("타겟 발견! 최종 보안 확인 중..."); checkWin(); }
             else if (grid[r][c] === 'M') await triggerChainExplosion();
@@ -307,13 +310,26 @@
         for(let r=0; r<ROWS; r++) for(let c=0; c<COLS; c++) if(grid[r][c] === 'M') mines.push({r, c});
         for(let m of mines) {
             const el = document.getElementById(`t-${m.r}-${m.c}`);
-            if(el) {
-                el.classList.add('exploding');
-                el.innerText = "💣"; el.style.color = "#fff";
-            }
+            if(el) { el.classList.add('exploding'); el.innerText = "💣"; el.style.color = "#fff"; }
             await new Promise(res => setTimeout(res, 60));
         }
         setTimeout(() => showResult(false, "ELIMINATED", "폭탄 트랩이 작동했습니다. 장청의 신변확보에 실패했습니다."), 500);
+    }
+
+    // [수정] 보스 모드 피날레 연출
+    function triggerBossWinSequence() {
+        gameActive = false;
+        clearInterval(mainTimer);
+        const tiles = document.querySelectorAll('.tile');
+        tiles.forEach(t => t.classList.add('dimmed'));
+        
+        const targetTile = document.getElementById(`t-${targetPos.r}-${targetPos.c}`);
+        targetTile.classList.remove('dimmed');
+        targetTile.classList.add('target-highlight');
+        targetTile.innerText = "🎯";
+
+        addLogEntry("모든 위협 제거 완료. 배신자 장청을 고립시켰습니다.");
+        setTimeout(() => showResult(true, "CLEAN SWEEP", "배신자 장청을 발견해 처단했습니다."), 2500);
     }
 
     function checkWin() {
@@ -324,8 +340,13 @@
             if (grid[r][c] === 'T' && opened[r][c]) foundT = true;
             if (grid[r][c] === 'M' && !opened[r][c]) minesCleared = false;
         }
-        if (currentMode === "BOSS") { if (minesCleared) showResult(true, "CLEAN SWEEP", "배신자 장청을 발견해 처단했습니다."); }
-        else { if (foundT && safeLeft === 0) showResult(true, "MISSION COMPLETE", "장청 확보 및 구역 안전이 모두 확인되었습니다."); }
+
+        if (currentMode === "BOSS") {
+            // [수정] 보스 승리 조건: 안전지대 확보 & 모든 조직원 인증
+            if (safeLeft === 0 && minesCleared) triggerBossWinSequence();
+        } else {
+            if (foundT && safeLeft === 0) showResult(true, "MISSION COMPLETE", "장청 확보 및 구역 안전이 모두 확인되었습니다.");
+        }
     }
 
     function startTimer() {
@@ -351,9 +372,7 @@
         document.getElementById('result-msg').innerText = msg;
     }
 
-    retryBtn.addEventListener('click', () => {
-        location.reload();
-    });
+    retryBtn.addEventListener('click', () => { location.reload(); });
 </script>
 </body>
 </html>
