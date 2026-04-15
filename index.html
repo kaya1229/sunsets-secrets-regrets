@@ -99,7 +99,7 @@
 <body>
 
 <div id="login-screen">
-    <img src="https://your-github-path/steel-forest-logo.png" id="intro-image" alt="강철삼림" onclick="showCodes()">
+    <img src="steel-forest-logo.jpeg" id="intro-image" alt="강철삼림" onclick="showCodes()">
     <div id="access-codes">
         승인된 접속 코드:<br>
         [ 저우진 ] - EASY MODE<br>
@@ -145,7 +145,7 @@
     const ROWS = 12, COLS = 15, MINES = 12;
     let grid = [], opened = [], targetPos = { r: 0, c: 0 };
     let gameActive = false, totalSeconds = 0, hintDuration = 3000, mainTimer, currentMode = "";
-
+    let floodLimit = 5; // <--- 추가: 한 번에 확산될 최대 단계(깊이)
     const IMG_PATH = "https://your-github-path/"; 
     const IMAGES = {
         safe: IMG_PATH + "a.png", warn: IMG_PATH + "b.png",
@@ -170,6 +170,9 @@
 
     function proceedLogin(name, time, hTime, mode) {
         gameActive = true; totalSeconds = time; hintDuration = hTime; currentMode = mode;
+        if (mode === "EASY") floodLimit = 6;
+    else if (mode === "NORMAL") floodLimit = 4;
+    else if (mode === "BOSS") floodLimit = 4;
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('game-container').style.display = 'grid';
         document.getElementById('agent-display').innerText = `AGENT: ${name}`;
@@ -253,22 +256,35 @@
         checkWin();
     }
 
-    function reveal(r, c, icon = null) {
-        if (r<0 || r>=ROWS || c<0 || c>=COLS || opened[r][c]) return;
-        opened[r][c] = true;
-        const el = document.getElementById(`t-${r}-${c}`);
-        el.classList.add('open');
-        
-        const dist = Math.sqrt(Math.pow(r-targetPos.r, 2) + Math.pow(c-targetPos.c, 2));
-        el.setAttribute('data-dist', dist <= 3 ? 'red' : (dist <= 6 ? 'orange' : 'blue'));
+    // limit 파라미터 추가 (기본값은 floodLimit)
+function reveal(r, c, icon = null, limit = floodLimit) {
+    if (r < 0 || r >= ROWS || c < 0 || c >= COLS || opened[r][c]) return;
+    
+    opened[r][c] = true;
+    const el = document.getElementById(`t-${r}-${c}`);
+    el.classList.add('open');
+    
+    const dist = Math.sqrt(Math.pow(r - targetPos.r, 2) + Math.pow(c - targetPos.c, 2));
+    el.setAttribute('data-dist', dist <= 3 ? 'red' : (dist <= 6 ? 'orange' : 'blue'));
 
-        if (icon) el.innerText = icon;
-        else if (grid[r][c] > 0) {
-            el.innerText = grid[r][c];
-            setTimeout(() => { if(el.classList.contains('open')) el.classList.add('fade'); }, hintDuration);
-        }
-        if (grid[r][c] === 0) for (let i=-1; i<=1; i++) for (let j=-1; j<=1; j++) reveal(r+i, c+j);
+    if (icon) {
+        el.innerText = icon;
+    } else if (grid[r][c] > 0) {
+        el.innerText = grid[r][c];
+        setTimeout(() => { if(el.classList.contains('open')) el.classList.add('fade'); }, hintDuration);
     }
+
+    // [수정된 부분] limit가 0보다 클 때만 주변 칸을 탐색함
+    if (grid[r][c] === 0 && limit > 0) {
+        for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++) {
+                if (i === 0 && j === 0) continue;
+                // 다음 칸을 열 때 limit를 1 감소시켜서 전달
+                reveal(r + i, c + j, null, limit - 1);
+            }
+        }
+    }
+}
 
     function revealAll() {
         for (let r=0; r<ROWS; r++) {
