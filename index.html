@@ -35,25 +35,22 @@
     width: 300px; 
     cursor: pointer; 
     transition: all 0.5s ease-in-out;
-    opacity: 0.7; 
+    opacity: 0.8; 
     
-    /* [핵심] 흰 선 연출 필터 */
+    /* [핵심] 펜 선의 색상만 푸른색으로 변경 */
     filter: 
-        grayscale(100%) 
-        /* 원본이 어둡다면 반전시켜 선을 하얗게 만듦 */
-        invert(100%) 
-        brightness(1.5)
-        /* 흰색 광채 */
-        drop-shadow(0 0 8px rgba(255,255,255,0.8));
+        grayscale(100%)    /* 1. 혹시 있을 색상 제거 */
+        sepia(100%)       /* 2. 갈색 톤으로 만듦 */
+        hue-rotate(190deg) /* 3. 갈색을 푸른색으로 돌림 */
+        saturate(500%)    /* 4. 푸른색을 진하게 함 */
+        brightness(0.9)    /* 5. 약간 어둡게 하여 선을 선명하게 */
+        drop-shadow(0 0 10px var(--accent-blue)); /* 6. 푸른 광채 */
 }
 
 #intro-image:hover { 
     transform: scale(1.05); 
     opacity: 1; 
-    /* 호버 시 약간 푸른빛이 도는 흰색으로 변경 */
-    filter: 
-        grayscale(100%) invert(100%) brightness(2)
-        drop-shadow(0 0 15px #fff) drop-shadow(0 0 5px var(--accent-blue));
+    filter: grayscale(100%) sepia(100%) hue-rotate(190deg) saturate(800%) brightness(1.1) drop-shadow(0 0 15px var(--accent-blue));
 }
         
         #access-codes {
