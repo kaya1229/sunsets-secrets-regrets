@@ -28,24 +28,43 @@
             background-size: 100% 4px; z-index: 5000; pointer-events: none; opacity: 0.3;
         }
 
-        #glass-shatter {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: url('https://www.transparenttextures.com/patterns/glass-shattering.png');
-            background-size: cover; z-index: 6000; display: none; pointer-events: none;
-            filter: contrast(200%) invert(1); animation: shatter-shake 0.15s infinite;
-        }
-        @keyframes shatter-shake { 0%, 100% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -1px); } }
-
         #login-screen {
-            width: 450px; height: 350px; background: #000;
+            width: 480px; height: 420px; background: #000;
             border: 2px solid var(--system-blue); padding: 25px;
             display: flex; flex-direction: column; z-index: 110;
             box-shadow: 0 0 25px rgba(0, 170, 255, 0.15);
             transition: all 0.5s ease;
+            position: relative;
+        }
+
+        /* [추가] 단말기 상단 제목 스타일 */
+        #terminal-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px double var(--system-blue);
+            padding-bottom: 15px;
+        }
+        #terminal-header h1 {
+            margin: 0; font-size: 1.8rem; letter-spacing: 8px;
+            color: var(--accent-blue); text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+        }
+        #terminal-header p {
+            margin: 5px 0 0 0; font-size: 0.75rem; letter-spacing: 2px;
+            color: var(--system-blue); opacity: 0.8;
+        }
+
+        /* [추가] 단말기 하단 제작 정보 스타일 */
+        #terminal-footer {
+            margin-top: 15px;
+            text-align: right;
+            font-size: 0.65rem;
+            color: #4a5d6e;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
         
         #login-log { 
-            flex-grow: 1; font-size: 0.9rem; color: var(--system-blue); 
+            flex-grow: 1; font-size: 0.85rem; color: var(--system-blue); 
             overflow-y: auto; line-height: 1.6; 
             scrollbar-width: none; -ms-overflow-style: none;
         }
@@ -71,7 +90,6 @@
         .txt-blue { color: var(--accent-blue) !important; text-shadow: 0 0 8px var(--accent-blue); }
         .txt-none { color: #556a7d; }
 
-        /* [수정] 피날레 효과 */
         .dimmed { opacity: 0.2; transform: scale(0.9); }
         .target-highlight { background: var(--danger-red) !important; color: #fff !important; box-shadow: 0 0 20px var(--danger-red); transform: scale(1.1); z-index: 50; animation: pulse-red 0.5s infinite alternate; }
         @keyframes pulse-red { from { box-shadow: 0 0 10px var(--danger-red); } to { box-shadow: 0 0 30px var(--danger-red); } }
@@ -86,20 +104,24 @@
         .system-log::-webkit-scrollbar { display: none; }
 
         #result-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 8000; flex-direction: column; justify-content: center; align-items: center; background: #000; text-align: center;}
-        .static-noise { position: absolute; width: 100%; height: 100%; background: url('https://upload.wikimedia.org/wikipedia/commons/b/b1/Static_noise.gif'); opacity: 0.1; mix-blend-mode: screen; pointer-events: none; }
-        .red-alert { animation: red-alert-pulse 1.5s infinite; }
-        @keyframes red-alert-pulse { 0%, 100% { box-shadow: inset 0 0 100px rgba(0,0,0,1); } 50% { box-shadow: inset 0 0 200px rgba(255, 0, 0, 0.3); } }
-        .exploding { background: var(--danger-red) !important; transform: scale(1.1); z-index: 20; }
     </style>
 </head>
 <body>
 
-<div id="glass-shatter"></div>
-
 <div id="login-screen">
+    <div id="terminal-header">
+        <h1>강철삼림</h1>
+        <p>장청 구출작전 // OPERATION: STEEL FOREST</p>
+    </div>
+
     <div id="login-log"></div>
+    
     <div id="login-input-area">
         <span class="prompt" id="terminal-prompt">ADMIN@STEEL_FOREST:~$</span><input type="text" id="pass-input" autocomplete="off">
+    </div>
+
+    <div id="terminal-footer">
+        made by deokjilkkk
     </div>
 </div>
 
@@ -115,7 +137,7 @@
 
 <div id="result-screen">
     <div id="noise-layer"></div>
-    <h1 id="result-title" style="font-size: 2.5rem; letter-spacing: 10px;">STATUS</h1>
+    <h1 id="result-title" style="font-size: 2.5rem; letter-spacing: 10px; color: var(--signal-green);">STATUS</h1>
     <p id="result-msg" style="color: #ccc; margin: 20px 0; max-width: 80%; line-height: 1.6;"></p>
     <button id="retry-btn" style="background: transparent; border: 1px solid #fff; color: #fff; padding: 15px 50px; cursor: pointer; letter-spacing: 2px; position: relative; z-index: 8001;">RE-ATTEMPT</button>
 </div>
@@ -136,12 +158,11 @@
         "▶ 보안터널 확인 중...",
         "▶ 통신 암호화 확인.",
         "▶ 강철삼림 데이터 베이스 접속 중....",
-        "▶ 창펑 작전 확인.",
         "▶ 창펑 작전에 투입된 자의 신분 확인 및 작전내용 확인 중...",
         "▶ [성명 : 장청] ",
-        "▶ [작전내용 : 조직 정보 수집 및 라오셰의 정체 확인]",
+        "▶ [작전내용 : 조직 정보 수집 및 라오셰 정체 확인]",
         "▶ [업데이트 : 창펑작전의 주도자 야오웨이하이 팀장 사망]",
-        "▶ [업데이트 : 장청의 신변보호 필요]",
+        "▶ [업데이트 : 장청의 신변 보호 필요]",
         "▶ 장청과 접선하여 신변을 확보하시오.",
         "▶ 작전개시를 위해 이름/암호를 입력하시오. (저우진/장한성)"
     ];
@@ -190,21 +211,20 @@
         if (mode === "BOSS") {
             loginScreen.classList.add('boss-alert-ui');
             loginLog.classList.add('boss-alert-text');
+            document.getElementById('terminal-header').style.borderColor = "var(--danger-red)";
+            document.querySelector('#terminal-header h1').classList.add('boss-alert-text');
             document.getElementById('terminal-prompt').classList.add('boss-alert-text');
             
             const hackMsg = document.createElement('div');
             hackMsg.className = 'boss-alert-text';
-            hackMsg.innerText = "▶ 해킹이 완료되었습니다. 배신자 장청 처단 작전을 시작합니다.";
+            hackMsg.innerText = "▶ 해킹 완료. 배신자 장청 처단 작전을 시작합니다.";
             loginLog.appendChild(hackMsg);
         } else {
             const success = document.createElement('div');
             success.style.color = "var(--accent-blue)";
-            success.style.textShadow = "0 0 5px var(--accent-blue)";
             success.innerText = `▶ ${name} AUTHENTICATED. 작전을 개시합니다.`;
             loginLog.appendChild(success);
         }
-        
-        loginLog.scrollTop = loginLog.scrollHeight;
         setTimeout(() => initGame(name, time, hTime, mode), 1500);
     }
 
@@ -214,9 +234,6 @@
         document.getElementById('game-container').style.display = 'block';
         document.getElementById('agent-name').innerText = name;
         document.getElementById('target-goal').innerText = (mode === "BOSS") ? "TARGET: J.C" : "JANG CHENG";
-        
-        logEl.innerHTML = ""; 
-        addLogEntry("작전 구역 접속 완료. 타겟의 신호 흔적 분석 시작.");
         setupBoard();
         startTimer();
     }
@@ -259,7 +276,6 @@
 
     function addLogEntry(msg) {
         const entry = document.createElement('div');
-        entry.style.marginBottom = "4px";
         entry.innerText = `▶ ${msg}`;
         logEl.appendChild(entry);
         logEl.scrollTop = logEl.scrollHeight;
@@ -268,13 +284,24 @@
     async function handleClick(r, c) {
         if (!gameActive || opened[r][c]) return;
         if (currentMode === "BOSS") {
-            if (grid[r][c] === 'T') triggerShatterEffect();
-            else if (grid[r][c] === 'M') { reveal(r, c, "✅"); addLogEntry("조직원 신원 확인 완료. 배신자 압박 중..."); checkWin(); }
-            else { reveal(r, c); addLogEntry("안전 구역 데이터 스캔 완료."); checkWin(); }
+            if (grid[r][c] === 'T') {
+                gameActive = false;
+                showResult(false, "EXPOSED", "경찰에 의해 정체가 발각되었습니다.");
+            } else if (grid[r][c] === 'M') { reveal(r, c, "✅"); addLogEntry("조직원 확인 완료."); checkWin(); }
+            else { reveal(r, c); addLogEntry("안전 구역 스캔."); checkWin(); }
         } else {
-            if (grid[r][c] === 'T') { reveal(r, c, "⚠️"); addLogEntry("타겟 발견! 최종 보안 확인 중..."); checkWin(); }
-            else if (grid[r][c] === 'M') await triggerChainExplosion();
-            else { reveal(r, c); addLogEntry("섹터 확보. 타겟 거리 계산 중..."); checkWin(); }
+            if (grid[r][c] === 'T') { reveal(r, c, "⚠️"); addLogEntry("타겟 발견."); checkWin(); }
+            else if (grid[r][c] === 'M') {
+                gameActive = false;
+                const mines = [];
+                for(let rr=0; rr<ROWS; rr++) for(let cc=0; cc<COLS; cc++) if(grid[rr][cc] === 'M') mines.push({rr, cc});
+                for(let m of mines) {
+                    const el = document.getElementById(`t-${m.rr}-${m.cc}`);
+                    if(el) { el.style.background = "var(--danger-red)"; el.innerText = "💣"; }
+                }
+                setTimeout(() => showResult(false, "ELIMINATED", "폭탄 트랩이 작동했습니다."), 500);
+            }
+            else { reveal(r, c); addLogEntry("섹터 확보."); checkWin(); }
         }
     }
 
@@ -283,7 +310,6 @@
         opened[r][c] = true;
         const el = document.getElementById(`t-${r}-${c}`);
         el.classList.add('open');
-
         const dist = Math.sqrt(Math.pow(r-targetPos.r, 2) + Math.pow(c-targetPos.c, 2));
         let colorClass = dist <= 2.2 ? 'txt-red' : (dist <= 4.3 ? 'txt-orange' : 'txt-blue');
         
@@ -298,74 +324,42 @@
         if (grid[r][c] === 0) for (let i=-1; i<=1; i++) for (let j=-1; j<=1; j++) reveal(r+i, c+j);
     }
 
-    function triggerShatterEffect() {
-        gameActive = false;
-        document.getElementById('glass-shatter').style.display = 'block';
-        setTimeout(() => showResult(false, "EXPOSED", "경찰에 의해 정체가 발각되었습니다. 작전 실패."), 1200);
-    }
-
-    async function triggerChainExplosion() {
-        gameActive = false;
-        const mines = [];
-        for(let r=0; r<ROWS; r++) for(let c=0; c<COLS; c++) if(grid[r][c] === 'M') mines.push({r, c});
-        for(let m of mines) {
-            const el = document.getElementById(`t-${m.r}-${m.c}`);
-            if(el) { el.classList.add('exploding'); el.innerText = "💣"; el.style.color = "#fff"; }
-            await new Promise(res => setTimeout(res, 60));
-        }
-        setTimeout(() => showResult(false, "ELIMINATED", "폭탄 트랩이 작동했습니다. 장청의 신변확보에 실패했습니다."), 500);
-    }
-
-    // [수정] 보스 모드 피날레 연출
-    function triggerBossWinSequence() {
-        gameActive = false;
-        clearInterval(mainTimer);
-        const tiles = document.querySelectorAll('.tile');
-        tiles.forEach(t => t.classList.add('dimmed'));
-        
-        const targetTile = document.getElementById(`t-${targetPos.r}-${targetPos.c}`);
-        targetTile.classList.remove('dimmed');
-        targetTile.classList.add('target-highlight');
-        targetTile.innerText = "🎯";
-
-        addLogEntry("모든 위협 제거 완료. 배신자 장청을 고립시켰습니다.");
-        setTimeout(() => showResult(true, "CLEAN SWEEP", "배신자 장청을 발견해 처단했습니다."), 2500);
-    }
-
     function checkWin() {
         if (!gameActive) return;
-        let safeLeft = 0; let foundT = false; let minesCleared = true;
+        let safeLeft = 0, minesCleared = true, foundT = (grid[targetPos.r][targetPos.c] === 'T' && opened[targetPos.r][targetPos.c]);
         for (let r=0; r<ROWS; r++) for (let c=0; c<COLS; c++) {
             if (typeof grid[r][c] === 'number' && !opened[r][c]) safeLeft++;
-            if (grid[r][c] === 'T' && opened[r][c]) foundT = true;
             if (grid[r][c] === 'M' && !opened[r][c]) minesCleared = false;
         }
 
         if (currentMode === "BOSS") {
-            // [수정] 보스 승리 조건: 안전지대 확보 & 모든 조직원 인증
-            if (safeLeft === 0 && minesCleared) triggerBossWinSequence();
+            if (safeLeft === 0 && minesCleared) {
+                gameActive = false;
+                clearInterval(mainTimer);
+                document.querySelectorAll('.tile').forEach(t => t.classList.add('dimmed'));
+                const targetTile = document.getElementById(`t-${targetPos.r}-${targetPos.c}`);
+                targetTile.classList.remove('dimmed');
+                targetTile.classList.add('target-highlight');
+                targetTile.innerText = "🎯";
+                setTimeout(() => showResult(true, "CLEAN SWEEP", "배신자 장청을 처단했습니다."), 2500);
+            }
         } else {
-            if (foundT && safeLeft === 0) showResult(true, "MISSION COMPLETE", "장청 확보 및 구역 안전이 모두 확인되었습니다.");
+            if (foundT && safeLeft === 0) showResult(true, "MISSION COMPLETE", "장청 확보 및 구역 안전 확인.");
         }
     }
 
     function startTimer() {
-        clearInterval(mainTimer);
         mainTimer = setInterval(() => {
             totalSeconds--;
             const m = Math.floor(totalSeconds/60), s = totalSeconds%60;
             document.getElementById('global-timer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-            if (totalSeconds <= 0) showResult(false, "SIGNAL LOST", "데이터 역추적 시간 초과.");
+            if (totalSeconds <= 0) showResult(false, "SIGNAL LOST", "시간 초과.");
         }, 1000);
     }
 
     function showResult(isSuccess, title, msg) {
-        gameActive = false; 
         clearInterval(mainTimer);
         const screen = document.getElementById('result-screen');
-        const noise = document.getElementById('noise-layer');
-        if (!isSuccess) { screen.classList.add('red-alert'); noise.classList.add('static-noise'); }
-        else { screen.classList.remove('red-alert'); noise.classList.remove('static-noise'); }
         screen.style.display = 'flex';
         document.getElementById('result-title').innerText = title;
         document.getElementById('result-title').style.color = isSuccess ? "var(--signal-green)" : "var(--danger-red)";
