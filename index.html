@@ -32,10 +32,29 @@
             width: 500px; text-align: center; display: flex; flex-direction: column; align-items: center;
         }
         #intro-image {
-            width: 300px; cursor: pointer; transition: opacity 0.5s, transform 0.3s;
-            opacity: 0.7; filter: drop-shadow(0 0 15px var(--accent-blue));
-        }
-        #intro-image:hover { transform: scale(1.05); opacity: 1; }
+    width: 300px; 
+    cursor: pointer; 
+    transition: all 0.5s ease-in-out;
+    opacity: 0.7; 
+    
+    /* [핵심] 흰 선 연출 필터 */
+    filter: 
+        grayscale(100%) 
+        /* 원본이 어둡다면 반전시켜 선을 하얗게 만듦 */
+        invert(100%) 
+        brightness(1.5)
+        /* 흰색 광채 */
+        drop-shadow(0 0 8px rgba(255,255,255,0.8));
+}
+
+#intro-image:hover { 
+    transform: scale(1.05); 
+    opacity: 1; 
+    /* 호버 시 약간 푸른빛이 도는 흰색으로 변경 */
+    filter: 
+        grayscale(100%) invert(100%) brightness(2)
+        drop-shadow(0 0 15px #fff) drop-shadow(0 0 5px var(--accent-blue));
+}
         
         #access-codes {
             display: none; color: var(--accent-blue); font-size: 0.9rem; margin: 20px 0;
@@ -124,8 +143,7 @@
     <div id="login-input-area">
         <input type="text" id="pass-input" placeholder="ACCESS CODE" autocomplete="off">
     </div>
-    <div id="terminal-footer">made by deokjilkkk</div>
-    <div id="terminal-footer" onclick="unlockHiddenPath()" style="cursor: pointer;">made by deokjilkkk</div>
+   <div id="terminal-footer" onclick="unlockHiddenPath()" style="cursor: pointer; margin-top: 30px; color: #ffffff; opacity: 0.8;">made by deokjilkkk</div>
 </div>
 
 <div id="game-container">
