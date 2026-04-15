@@ -13,189 +13,173 @@
             --signal-green: #00ff88;
         }
 
-        body {
-            background-color: var(--bg-dark);
-            color: #e0e0e0;
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: var(--bg-dark); font-family: 'Courier New', monospace;
             overflow: hidden;
         }
 
-        /* CCTV 스캔라인 */
-        body::before {
-            content: " ";
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.1) 50%), 
-                        linear-gradient(90deg, rgba(255,0,0,0.02), rgba(0,255,0,0.01), rgba(0,0,255,0.02));
-            background-size: 100% 4px, 3px 100%;
-            pointer-events: none;
-            z-index: 10;
+        /* [기믹 1] 어둠 및 스캔 레이어 */
+        #scan-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; z-index: 100;
+            --mask-x: -100%; --mask-y: -100%;
+            mask-image: radial-gradient(circle 100px at var(--mask-x) var(--mask-y), black 20%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle 100px at var(--mask-x) var(--mask-y), black 20%, transparent 100%);
+            pointer-events: none; /* 클릭 통과 */
         }
 
-        /* 시작 화면 스타일 */
-        #start-screen {
-            text-align: center;
-            z-index: 20;
-            background: var(--panel-bg);
-            padding: 40px;
-            border: 1px solid var(--accent-blue);
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+        /* [기믹 2] 숨겨진 암호 텍스트 */
+        .hidden-hint {
+            position: absolute; color: #111; /* 평소엔 거의 안 보임 */
+            font-size: 0.8rem; letter-spacing: 2px; z-index: 50;
+            user-select: none; transition: color 0.3s;
+        }
+        /* 스캔되면 밝게 보임 */
+        .scanned { color: var(--accent-blue) !important; text-shadow: 0 0 5px var(--accent-blue); }
+
+        /* 시작 로그인 박스 */
+        #login-screen {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; z-index: 110;
+        }
+        #login-screen input {
+            background: transparent; border: 1px solid var(--accent-blue);
+            color: var(--accent-blue); padding: 12px; text-align: center;
+            outline: none; width: 220px; font-family: inherit;
         }
 
-        input {
-            background: #000;
-            border: 1px solid var(--accent-blue);
-            color: var(--accent-blue);
-            padding: 10px;
-            font-family: inherit;
-            text-align: center;
-            margin-top: 20px;
-            outline: none;
-        }
-
-        .mode-hint { font-size: 0.7rem; color: #555; margin-top: 20px; text-align: left; }
-
-        /* 게임 화면 스타일 */
+        /* 게임 본체 컨테이너 */
         #game-container {
-            display: none;
-            width: 360px;
-            background: var(--panel-bg);
-            border: 1px solid #2a3b4d;
-            padding: 20px;
-            z-index: 5;
+            display: none; width: 360px; background: var(--panel-bg);
+            border: 1px solid #2a3b4d; padding: 20px; position: relative; z-index: 5;
+            margin: auto; margin-top: 10vh;
         }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #2a3b4d;
-            padding-bottom: 10px;
-            font-size: 0.8rem;
-        }
-
-        .timer-red { color: var(--danger-red) !important; animation: blink 0.5s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-
-        #grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; margin-bottom: 15px; }
-
-        .tile {
-            aspect-ratio: 1;
-            background: #16222c;
-            border: 1px solid #253341;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            font-weight: bold;
-            transition: color 0.6s ease-out;
-        }
-
+        /* 지뢰찾기 UI 요소들 */
+        header { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #2a3b4d; padding-bottom: 10px; font-size: 0.8rem; }
+        #grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; }
+        .tile { aspect-ratio: 1; background: #16222c; border: 1px solid #253341; display: flex; justify-content: center; align-items: center; cursor: pointer; font-weight: bold; transition: color 0.6s ease-out; }
         .tile.open { background: #050a0f; cursor: default; }
         .hint-red { color: var(--danger-red); text-shadow: 0 0 8px var(--danger-red); }
         .hint-orange { color: #ffab40; }
         .hint-blue { color: var(--accent-blue); }
         .hint-none { color: #333 !important; text-shadow: none !important; }
-
-        .system-log {
-            background: #000;
-            padding: 10px;
-            font-size: 0.75rem;
-            color: var(--signal-green);
-            height: 45px;
-            border: 1px solid #1a1a1a;
-        }
+        .timer-red { color: var(--danger-red) !important; animation: blink 0.5s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
 </head>
 <body>
 
-<div id="start-screen">
-    <h2 style="color:var(--accent-blue); letter-spacing: 2px;">ACCESS RESTRICTED</h2>
-    <p style="font-size:0.8rem;">보안 암호를 입력하십시오.</p>
-    <input type="text" id="pass-input" placeholder="PASSWORD" autocomplete="off">
-    <div class="mode-hint">
-        * 저우진: ZHOU12 (EASY)<br>
-        * 장한성: BRAIN9 (NORMAL)<br>
-        * 보스: BOSS00 (HARD)
-    </div>
+<div id="scan-overlay"></div>
+<div id="hint-container">
+    <div class="hidden-hint" style="top:20%; left:15%">ZHOU12 (EASY)</div>
+    <div class="hidden-hint" style="top:75%; left:65%">BRAIN9 (NORMAL)</div>
+    <div class="hidden-hint" style="top:40%; left:80%">BOSS00 (HARD)</div>
+    <div class="hidden-hint" style="top:15%; left:70%">[DECODE SIGNAL]</div>
+</div>
+
+<div id="login-screen">
+    <h2 style="color:var(--accent-blue); font-size: 1rem; margin-bottom: 20px;">ACCESS RESTRICTED</h2>
+    <input type="text" id="pass-input" placeholder="INPUT SECURITY CODE" autocomplete="off">
+    <p style="font-size:0.6rem; color:#444; margin-top:10px;">스캐너를 움직여 암호를 찾으십시오</p>
 </div>
 
 <div id="game-container">
     <header>
         <div>AGENT<br><span id="agent-name" style="color:var(--accent-blue)">---</span></div>
         <div style="text-align: center;">
-            <div style="font-size: 0.6rem; color: #666;">LIMIT TIME</div>
+            <div style="font-size: 0.6rem; color: #666;">OPERATION TIME</div>
             <div id="global-timer" style="font-size: 1.2rem; color: var(--signal-green);">00:00</div>
         </div>
         <div style="text-align:right">TARGET<br><span style="color:var(--danger-red)">JANG CHENG</span></div>
     </header>
-
     <div id="grid"></div>
-
-    <div class="system-log" id="log-display">
-        [SYSTEM] 타일을 클릭하여 추출 작전을 시작하십시오.
-    </div>
 </div>
 
 <script>
-    const ROWS = 10, COLS = 8, MINES_COUNT = 12;
+    const ROWS = 10, COLS = 8, MINES = 12;
     let grid = [], opened = [], flagged = [], targetPos = { r: 0, c: 0 };
-    let gameActive = false, totalSeconds = 0, hintDuration = 4000;
-    let mainTimer;
+    let gameActive = false, totalSeconds = 0, hintDuration = 4000, mainTimer;
 
-    const passInput = document.getElementById('pass-input');
-    const startScreen = document.getElementById('start-screen');
+    const overlay = document.getElementById('scan-overlay');
+    const loginScreen = document.getElementById('login-screen');
     const gameContainer = document.getElementById('game-container');
+    const passInput = document.getElementById('pass-input');
 
-    // 1. 암호 확인 및 모드 설정
+    // 1. 스캔 기믹 제어 (마우스/터치 통합)
+    function handleMove(e) {
+        const x = e.clientX || (e.touches && e.touches[0].clientX);
+        const y = e.clientY || (e.touches && e.touches[0].clientY);
+        if (!x || !y) return;
+
+        overlay.style.setProperty('--mask-x', `${x}px`);
+        overlay.style.setProperty('--mask-y', `${y}px`);
+
+        // 힌트 텍스트 근처에 가면 밝아지는 효과
+        document.querySelectorAll('.hidden-hint').forEach(hint => {
+            const rect = hint.getBoundingClientRect();
+            const dx = x - (rect.left + rect.width/2);
+            const dy = y - (rect.top + rect.height/2);
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < 80) hint.classList.add('scanned');
+            else hint.classList.remove('scanned');
+        });
+    }
+
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('touchmove', handleMove);
+
+    // 2. 암호 확인 및 게임 시작
     passInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             const val = passInput.value.toUpperCase();
             if (val === 'ZHOU12') initGame("저우진", 180, 8000);
             else if (val === 'BRAIN9') initGame("장한성", 120, 4000);
             else if (val === 'BOSS00') initGame("보스", 60, 1500);
-            else {
-                alert("ACCESS DENIED: 유효하지 않은 암호입니다.");
-                passInput.value = "";
-            }
+            else { alert("INVALID CODE"); passInput.value = ""; }
         }
     });
 
-    function initGame(name, time, hintTime) {
-        document.getElementById('agent-name').innerText = name;
-        totalSeconds = time;
-        hintDuration = hintTime;
-        startScreen.style.display = 'none';
-        gameContainer.style.display = 'block';
+    function initGame(name, time, hTime) {
         gameActive = true;
+        totalSeconds = time;
+        hintDuration = hTime;
+        
+        // 로그인 및 스캔 레이어 제거
+        loginScreen.style.display = 'none';
+        overlay.style.display = 'none';
+        document.getElementById('hint-container').style.display = 'none';
+        gameContainer.style.display = 'block';
+        document.body.style.cursor = 'default';
 
-        // 그리드 생성
+        document.getElementById('agent-name').innerText = name;
+        setupBoard();
+        startTimer();
+    }
+
+    function setupBoard() {
         grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
         opened = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
         flagged = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
 
         let tSet = false, mSet = 0;
-        while (!tSet || mSet < MINES_COUNT - 1) {
-            let r = Math.floor(Math.random() * ROWS), c = Math.floor(Math.random() * COLS);
+        while (!tSet || mSet < MINES - 1) {
+            let r = Math.floor(Math.random()*ROWS), c = Math.floor(Math.random()*COLS);
             if (grid[r][c] === 0) {
-                if (!tSet) { targetPos = { r, c }; grid[r][c] = 'T'; tSet = true; }
+                if (!tSet) { targetPos = {r, c}; grid[r][c] = 'T'; tSet = true; }
                 else { grid[r][c] = 'M'; mSet++; }
             }
         }
 
-        for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
+        for (let r=0; r<ROWS; r++) {
+            for (let c=0; c<COLS; c++) {
                 if (grid[r][c] === 'M' || grid[r][c] === 'T') continue;
                 let count = 0;
-                for (let i = -1; i <= 1; i++) {
-                    for (let j = -1; j <= 1; j++) {
-                        let nr = r + i, nc = c + j;
-                        if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+                for (let i=-1; i<=1; i++) {
+                    for (let j=-1; j<=1; j++) {
+                        let nr = r+i, nc = c+j;
+                        if (nr>=0 && nr<ROWS && nc>=0 && nc<COLS) {
                             if (grid[nr][nc] === 'M' || grid[nr][nc] === 'T') count++;
                         }
                     }
@@ -203,32 +187,14 @@
                 grid[r][c] = count;
             }
         }
-
-        drawGrid();
-        startGlobalTimer();
+        renderBoard();
     }
 
-    function startGlobalTimer() {
-        mainTimer = setInterval(() => {
-            totalSeconds--;
-            updateTimerDisplay();
-            if (totalSeconds <= 0) endGame("TIME OVER: 작전 실패. 증거가 인멸되었습니다.");
-        }, 1000);
-    }
-
-    function updateTimerDisplay() {
-        const m = Math.floor(totalSeconds / 60);
-        const s = totalSeconds % 60;
-        const display = document.getElementById('global-timer');
-        display.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        if (totalSeconds <= 10) display.classList.add('timer-red');
-    }
-
-    function drawGrid() {
+    function renderBoard() {
         const gridEl = document.getElementById('grid');
         gridEl.innerHTML = '';
-        for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
+        for (let r=0; r<ROWS; r++) {
+            for (let c=0; c<COLS; c++) {
                 const div = document.createElement('div');
                 div.className = 'tile';
                 div.id = `t-${r}-${c}`;
@@ -241,25 +207,25 @@
 
     function handleClick(r, c) {
         if (!gameActive || opened[r][c] || flagged[r][c]) return;
-        if (grid[r][c] === 'T') endGame("SUCCESS: 장청을 확보했습니다.");
+        if (grid[r][c] === 'T') endGame("SUCCESS: TARGET EXTRACTED");
         else if (grid[r][c] === 'M') endGame("FAILED: 정체가 노출되었습니다.");
         else reveal(r, c);
     }
 
     function reveal(r, c) {
-        if (r < 0 || r >= ROWS || c < 0 || c >= COLS || opened[r][c] || flagged[r][c]) return;
+        if (r<0 || r>=ROWS || c<0 || c>=COLS || opened[r][c] || flagged[r][c]) return;
         opened[r][c] = true;
         const el = document.getElementById(`t-${r}-${c}`);
         el.classList.add('open');
         if (grid[r][c] > 0) el.innerText = grid[r][c];
 
-        const dist = Math.sqrt(Math.pow(r - targetPos.r, 2) + Math.pow(c - targetPos.c, 2));
+        const dist = Math.sqrt(Math.pow(r-targetPos.r, 2) + Math.pow(c-targetPos.c, 2));
         let cls = dist <= 2.2 ? 'hint-red' : (dist <= 4.2 ? 'hint-orange' : 'hint-blue');
         el.classList.add(cls);
 
         setTimeout(() => { el.classList.remove('hint-red', 'hint-orange', 'hint-blue'); el.classList.add('hint-none'); }, hintDuration);
         if (grid[r][c] === 0) {
-            for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) reveal(r + i, c + j);
+            for (let i=-1; i<=1; i++) for (let j=-1; j<=1; j++) reveal(r+i, c+j);
         }
     }
 
@@ -267,6 +233,17 @@
         if (!gameActive || opened[r][c]) return;
         flagged[r][c] = !flagged[r][c];
         document.getElementById(`t-${r}-${c}`).innerText = flagged[r][c] ? "🚩" : "";
+    }
+
+    function startTimer() {
+        mainTimer = setInterval(() => {
+            totalSeconds--;
+            const m = Math.floor(totalSeconds/60), s = totalSeconds%60;
+            const display = document.getElementById('global-timer');
+            display.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            if (totalSeconds <= 10) display.classList.add('timer-red');
+            if (totalSeconds <= 0) endGame("FAILED: TIME OVER");
+        }, 1000);
     }
 
     function endGame(msg) {
