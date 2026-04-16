@@ -616,8 +616,7 @@ function showCodes() {
     
     // 3. 에이전트 정보 미리 세팅
     document.getElementById('agent-display').innerText = `AGENT: ${name}`;
-    const gridEl = document.getElementById('grid');
-    gridEl.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
+    
     
     // 4. 보드 생성 (미리 만들어둠)
     setupBoard();
