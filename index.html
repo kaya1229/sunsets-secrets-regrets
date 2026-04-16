@@ -234,7 +234,7 @@
 @media screen and (max-width: 768px) {
     /* 1. 로그인 전에는 절대로 보이지 않도록 설정 */
     #game-container {
-        /* display: flex; <- 이 줄을 삭제했습니다. */
+        display: none !important; <- 이 줄을 삭제했습니다. */
         flex-direction: column;
         width: 100vw;
         height: 100vh;
@@ -245,6 +245,8 @@
         gap: 5px; /* 간격 축소 */
         overflow-y: auto;
         box-sizing: border-box;
+        grid-template-columns: 1fr 350px; 
+    grid-template-rows: 1fr 1fr;
     }
     /* 4. 이미지 피드: 네모 칸에 꽉 차게 */
     #image-feed-channel {
@@ -682,18 +684,24 @@ function showBriefing(mode) {
     }
 }
 function startGameAfterBriefing() {
-    // 로그인 화면과 설명서 화면 전체를 숨김
+    // 1. 입장 화면 전체(로그인+설명서)를 숨김
+    const entrance = document.getElementById('entrance-wrapper');
+    if(entrance) entrance.style.display = 'none';
+    
+    // 혹시 모르니 개별 요소도 숨김
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('instruction-overlay').style.display = 'none';
-    
-    // 게임판 등장
+
+    // 2. 게임 화면 표시 (!important를 이기기 위해 속성 직접 변경)
     const gameContainer = document.getElementById('game-container');
+    
     if (window.innerWidth <= 768) {
-        gameContainer.style.display = 'flex';
+        gameContainer.style.setProperty('display', 'flex', 'important');
     } else {
-        gameContainer.style.display = 'grid';
+        gameContainer.style.setProperty('display', 'grid', 'important');
     }
 
+    // 3. 타이머 및 게임 활성화
     gameActive = true;
     startTimer();
     addLogEntry(`시스템 온라인. ${currentMode} 모드 프로토콜 가동.`);
