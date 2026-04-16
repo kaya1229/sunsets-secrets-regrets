@@ -291,15 +291,15 @@
         right: 15px;
     }
 }
-        #instruction-overlay {
+       #instruction-overlay {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.9);
+    top: 0; left: 0; 
+    width: 100vw; height: 100vh;
+    background: #000; /* 완전 검은색 배경으로 분리 */
     z-index: 9999;
-    display: none; /* 처음엔 숨김 */
+    display: none;
     justify-content: center;
     align-items: center;
-    font-family: var(--font-main);
 }
 
 #briefing-box {
@@ -342,6 +342,22 @@
     background: var(--accent-blue);
     color: #000;
 }
+        /* [CSS 추가] <style> 태그 안 맨 아래에 넣어주세요 */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+    body::after {
+        content: "PLEASE ROTATE DEVICE (LANDSCAPE)";
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: #000;
+        color: var(--signal-green);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000000;
+        font-family: var(--font-title);
+        font-size: 1.2rem;
+    }
+}
     </style>
 </head>
 <body>
@@ -370,14 +386,15 @@
     <p>insta : @deokjilkkk</p>
 </div></div>
 
-<div id="game-container">
-    <div id="instruction-overlay">
+<div id="instruction-overlay">
     <div id="briefing-box">
         <h2 id="briefing-title">MISSION BRIEFING</h2>
         <div id="briefing-content"></div>
         <button id="briefing-close" onclick="startGameAfterBriefing()">CONFIRM / START</button>
     </div>
 </div>
+
+<div id="game-container">
     <div id="main-game-channel" class="cctv-cell">
         <div class="cctv-label">CH 05 - TARGET AREA (LIVE)</div>
         <div id="global-timer">00:00</div>
@@ -397,6 +414,11 @@
         </div>
         <div id="log-display"></div>
     </div>
+</div>
+
+<div id="pause-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:100000; color:white; flex-direction:column; justify-content:center; align-items:center; font-family:var(--font-title);">
+    <h1 style="color:var(--danger-red); letter-spacing:10px;">SIGNAL LOST</h1>
+    <p>전체 화면 모드(F11)를 유지해야 작전 수행이 가능합니다.</p>
 </div>
 
 <div id="result-screen">
@@ -571,33 +593,26 @@ function showCodes() {
         console.log("FETCHING DEVELOPER INFOMATION...");
     }
 }
-    function proceedLogin(name, time, hTime, mode) {
-    // 1. 기본 설정 저장
-    gameActive = false; // 설명서를 읽는 동안은 게임이 멈춰있어야 함
+   function proceedLogin(name, time, hTime, mode) {
+    // 1. 데이터 설정
+    gameActive = false;
     totalSeconds = time;
     hintDuration = hTime;
     currentMode = mode;
-    
     floodLimit = (mode === "EASY") ? 3 : 2;
 
-    // 2. 화면 전환
+    // 2. 화면 제어: 로그인창은 끄고, 설명서만 켭니다. (게임판은 아직 display: none 상태 유지)
     document.getElementById('login-screen').style.display = 'none';
-    const gameContainer = document.getElementById('game-container');
-
-    // [중요] 화면 너비에 따라 레이아웃 방식을 동적으로 결정
-    if (window.innerWidth <= 768) {
-        gameContainer.style.display = 'flex';
-    } else {
-        gameContainer.style.display = 'grid';
-    }
-
-    document.getElementById('agent-display').innerText = `AGENT: ${name}`;
     
+    // 3. 에이전트 정보 미리 세팅
+    document.getElementById('agent-display').innerText = `AGENT: ${name}`;
     const gridEl = document.getElementById('grid');
     gridEl.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
     
-    // 3. 보드 세팅 및 설명서 표시
+    // 4. 보드 생성 (미리 만들어둠)
     setupBoard();
+
+    // 5. 설명서 표시 함수 호출
     showBriefing(mode);
 }
     // 설명서 문구 데이터
@@ -648,8 +663,24 @@ function showBriefing(mode) {
 
 function startGameAfterBriefing() {
     document.getElementById('instruction-overlay').style.display = 'none';
+    
+    const gameContainer = document.getElementById('game-container');
+    if (window.innerWidth <= 768) {
+        gameContainer.style.display = 'flex';
+    } else {
+        gameContainer.style.display = 'grid';
+    }
+
+    // [중요] PC 환경에서만 전체화면 실행 (모바일 충돌 방지)
+    const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+    if (!isMobile) {
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+        }
+    }
+
     gameActive = true;
-    startTimer(); // 여기서 타이머 시작
+    startTimer();
     addLogEntry(`시스템 온라인. ${currentMode} 모드 프로토콜 가동.`);
 }
 
@@ -833,6 +864,26 @@ function reveal(r, c, icon = null, limit = floodLimit) {
         document.getElementById('result-title').style.color = isSuccess ? "var(--signal-green)" : "var(--danger-red)";
         document.getElementById('result-msg').innerText = msg;
     }
+    // 전체 화면 상태 감지 (PC용)
+document.addEventListener('fullscreenchange', () => {
+    const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+    if (isMobile) return; // 모바일은 전체화면 감지 로직 제외
+
+    const pauseOverlay = document.getElementById('pause-overlay');
+    if (!document.fullscreenElement && gameActive) {
+        // 전체화면 탈출 시 -> 일시정지
+        gameActive = false;
+        clearInterval(mainTimer);
+        if (pauseOverlay) pauseOverlay.style.display = 'flex';
+        addLogEntry("SYSTEM PAUSED: 전체화면 이탈 감지.");
+    } else if (document.fullscreenElement && !gameActive && totalSeconds > 0) {
+        // 다시 복귀 시 -> 재개
+        gameActive = true;
+        startTimer();
+        if (pauseOverlay) pauseOverlay.style.display = 'none';
+        addLogEntry("SYSTEM RESUMED: 작전을 재개합니다.");
+    }
+});
 </script>
 </body>
 </html>
